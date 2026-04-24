@@ -30,6 +30,8 @@ External inputs (if the automation consumes files rather than APIs) live in `dat
 
 ## Starter code
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
+
 **`main.py`** (idempotency + dry-run pattern):
 ```python
 import argparse

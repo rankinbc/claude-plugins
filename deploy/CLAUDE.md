@@ -6,8 +6,12 @@ Language-agnostic defaults. Append your stack-specific section at the end.
 
 ### Session Start
 
+- **Read `.scaffolding/manifest.json` first if it exists.** Check `lifecycle.stage`:
+  - `"plan"` — the v1 implementation plan is written at `PRPs/v1_<slug>.md` but hasn't been executed. Components are stubs. On a fresh session, tell the user "**This project is at stage 1 of 2 (planned). Components are stubs — not yet runnable.** Next step: `/execute-prp PRPs/v1_<slug>.md`." Never suggest running component entry commands; they won't work yet.
+  - `"built"` (rare — `/execute-prp` normally deletes `.scaffolding/` on first full build, so this state is only seen mid-partial-build) — some components built, others still stubs. Check individual `scaffold_state` values before claiming the project is ready.
+  - `.scaffolding/` missing entirely — the common built-project case. `/execute-prp` cleaned up scaffolder state on first successful build. Treat the project as fully built; entry commands in CLAUDE.md's "How to run" are runnable. Adding new features uses `/generate-prp` (reads `PRPs/source/INITIAL.md`) → `/execute-prp PRPs/<new-slug>.md`.
 - If `HANDOFF.md` exists, read it first — a previous session paused mid-work.
-- Otherwise, if `INITIAL.md` is filled in and no PRP exists in `PRPs/` yet, that's the project intent — suggest `/generate-prp INITIAL.md` as the next step.
+- Otherwise, if `PRPs/source/INITIAL.md` is filled in and no PRP exists in `PRPs/` yet, that's the project intent — suggest `/generate-prp` (no arg) as the next step.
 - Consult `PRPs/README.md` if the PRP workflow comes up.
 - Check `PLANNING.md` / `TASK.md` if they exist.
 
@@ -43,6 +47,10 @@ Keep long sessions coherent — follow these automatically.
 - **Confirm file paths and symbols** before referencing them.
 - **Don't delete or overwrite existing code** without explicit instruction.
 
+### Workflow
+
+- **Default to the PRP workflow for new work.** New features, components, or multi-step changes go through `/new-feature` → `/generate-prp` → `/execute-prp`. `/new-feature` is the guided entry point — it interviews the user and fills `PRPs/source/INITIAL.md`; `/generate-prp` researches and writes the PRP; `/execute-prp` builds it. If the user asks for non-trivial new work and no active (non-archived) PRP in `PRPs/` covers it, propose `/new-feature` first and briefly explain why — the validation gates and checkpoints are what keep long sessions coherent across resets. Trivial fixes (typos, one-line bug fixes, doc tweaks, minor refactors) don't need a PRP — just do them.
+
 ### Project Cleanliness
 
 - **Respect the project structure** declared at the top of this file. Never create new top-level folders without updating the structure block first. Components live in `components/<name>/`, inputs in `data/<source>/`, outputs in `output/<component>/<date>_<description>/`.
@@ -50,7 +58,7 @@ Keep long sessions coherent — follow these automatically.
 - **Descriptive file and folder names.** It should be obvious what's what from the name alone. Avoid `utils.py`, `data.csv`, `temp.txt` — prefer `csv_loader.py`, `sales_2024_q4.csv`, etc.
 - **Generated artifacts** always land under `output/<component>/<date>_<description>/` — never at the project root. Other gitignored dirs (`dist/`, `build/`, `htmlcov/`) are fine where a toolchain expects them.
 - **Output rotation.** Keep the latest ~5 runs directly under `output/<component>/`. Move older runs to `output/<component>/_archive/` so routine globs and exploration skip historical artifacts. The `_archive/` prefix is intentionally glob-unfriendly for that reason. No script enforces this — apply the convention when you notice a component's output folder growing past ~5 dated subdirectories.
-- **PRP lifecycle.** Active plans live in `PRPs/`. On successful `/execute-prp`, the command moves the PRP to `PRPs/archive/<date>_<slug>.md` — don't treat files in `archive/` as current work. `INITIAL.md` relocates to `PRPs/source/` after the first `/generate-prp`.
+- **PRP lifecycle.** Active plans live in `PRPs/`. On successful `/execute-prp`, the command moves the PRP to `PRPs/archive/<date>_<slug>.md` — don't treat files in `archive/` as current work. Your spec lives at `PRPs/source/INITIAL.md` from scaffold onward; edit it in place for the next feature.
 - **Throwaway / single-use files** → prefix with `temp_` so they're easy to find and delete later.
 - **Don't create files the user didn't ask for** — no `PLANNING.md`, `NOTES.md`, `TODO.md`, etc. unless requested.
 

@@ -29,7 +29,7 @@ The SQLite database (`<component_name>.db`) lives under `data/<component_name>/`
 
 ## Starter code
 
-Minimal working FastAPI app — form page + submission + summary:
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
 
 **`app.py`**:
 ```python

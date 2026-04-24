@@ -1,42 +1,39 @@
 <!--
-  INITIAL.md — the intent doc that drives /generate-prp.
+  INITIAL.md — per-feature intake for /generate-prp.
 
-  This project has one or more **components**. Each component is a named,
-  purposeful piece of work (an analysis, a CLI, a report, etc.). Claude fills
-  a block for each one during /new-project.
+  Use this AFTER your v1 build is done (lifecycle.stage == "built") to add a
+  new feature. For the initial v1 build, /new-project wrote the PRP directly
+  at PRPs/v1_<slug>.md — you don't need INITIAL.md for that.
 
-  Fill each section with real detail. The more concrete, the better the PRP.
+  EASIER PATH: run `/new-feature` instead of hand-editing this file. It asks
+  a few questions, fills this file for you, then chains into /generate-prp
+  and /execute-prp. Use the manual instructions below only if you prefer to
+  author the spec yourself.
 
-  Not sure what to put here? Describe the feature out loud to Claude —
-  just say what you want to build and let Claude ask clarifying questions.
-  When the spec feels solid, update the sections below and run
-  /generate-prp INITIAL.md.
+  Manual flow: fill in what you want built below, then run `/generate-prp`.
+  Claude will research, write a new PRP at `PRPs/<slug>.md`, and you'll run
+  `/execute-prp PRPs/<slug>.md`.
 
-  Delete these hint comments when you're done — or leave them; they're ignored
-  when Claude reads the file.
+  If the new feature spans multiple components, use the ## COMPONENTS block
+  below (same shape /new-project used for the v1 mega-PRP). Otherwise, skip it
+  and just describe the single feature in ## FEATURE.
 -->
 
-## PROJECT
+## FEATURE
 
-<!--
-  One paragraph describing the overall goal of the project — what it lets
-  you do that you couldn't do before. Not component-level detail; that's
-  in the COMPONENT blocks below.
--->
-
-[Overall project goal in one paragraph]
+[One paragraph — what this feature does, the user-visible behavior, where it lives in the project]
 
 
 ## COMPONENTS
 
 <!--
-  One block per component. Keep the headers exactly as shown — /generate-prp
-  parses them to plan each component.
+  Optional — only if the feature spans multiple components. Keep the headers
+  exactly as shown; /generate-prp parses them.
 
-  Pattern refers to the shape file (dashboard, analysis, report, cli, etc.).
+  For a single-component feature, leave this section empty (or delete it).
 -->
 
-### COMPONENT: <component_name_1>
+### COMPONENT: <component_name>
 
 **Pattern**: <pattern file, e.g., `analysis.md`>
 
@@ -49,31 +46,11 @@
 **Notes**: [Component-specific considerations — edge cases, gotchas, constraints]
 
 
-### COMPONENT: <component_name_2>
-
-**Pattern**: <pattern file>
-
-**Purpose**: ...
-
-**Inputs**: ...
-
-**Outputs**: ...
-
-**Notes**: ...
-
-
 ## SHARED DOCUMENTATION
 
 <!--
-  Links Claude should pull in while designing. Include:
-    - Official docs for any library/framework used across components
-    - API reference URLs for any external service called
-    - MCP servers relevant to this work
-    - Internal wiki / design-doc links (Claude can't read these, but noting
-      them helps you remember to paste the relevant content in)
-
-  Be specific about which section of a doc matters — "FastAPI docs, especially
-  the Dependency Injection section" is more useful than "FastAPI docs."
+  Links Claude should pull in while researching. Official docs, API references,
+  internal files worth reading. Be specific about which section of a doc matters.
 -->
 
 [List shared documentation links here]
@@ -82,17 +59,13 @@
 ## OTHER CONSIDERATIONS
 
 <!--
-  The highest-value section. Things AI assistants typically miss about YOUR
-  project go here:
-    - "This codebase uses tabs, not spaces"
-    - "We never use async for database calls — legacy reasons"
+  High-value section. Things AI assistants typically miss:
+    - "This touches the auth layer — re-read CLAUDE.md's security section first"
     - "Rate limit is 10 req/sec on this API, not the documented 100"
-    - "If you touch auth, re-read CLAUDE.md's security section first"
     - "The previous attempt at this failed because <X>; don't repeat it"
+    - Project-wide edge cases, failure modes, domain gotchas
 
-  Also: project-wide edge cases, failure modes, gotchas specific to your
-  domain that span components. Component-specific gotchas belong in the
-  component's Notes field above.
+  Component-specific gotchas belong in the Notes field above.
 -->
 
 [Project-wide considerations]

@@ -68,7 +68,7 @@ Use this when:
 
 ## When the next session starts
 
-If the user has an existing `HANDOFF.md`, they (or you, on session start) should Read it first — it's entry-point context alongside `CLAUDE.md` and `QUICKSTART.md`.
+If the user has an existing `HANDOFF.md`, they (or you, on session start) should Read it first — it's entry-point context alongside `CLAUDE.md` and `INITIAL.md`.
 
 ---
 

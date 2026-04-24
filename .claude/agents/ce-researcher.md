@@ -78,7 +78,7 @@ Keep your response **tight and actionable**. The planner is going to use this to
 - {Pattern 1 with one-line rationale}
 - {Pattern 2}
 - {Pattern 3}
-(3-7 items; these are things the scaffolder will bake into starter code or CLAUDE.md)
+(3-7 items; these get baked into the project's CLAUDE.md as constraints for `/execute-prp` to follow during the build stage — the scaffolder itself only writes minimum-viable stubs, so patterns land in CLAUDE.md rather than in code)
 
 ## Gotchas to document
 - **{Gotcha 1}**: {one-line description + what to do about it}
@@ -92,6 +92,18 @@ Keep your response **tight and actionable**. The planner is going to use this to
 - {URL with specific section}: {why it's useful}
 - {URL}: ...
 
+## Project-level footprint suggestions
+{Verbatim bullets from the pattern's `## Project-level footprint` section, or "None" if the pattern doesn't declare one. These get aggregated across the project's components by ce-planner and proposed to the user as optional extra top-level folders. Pattern-declared — trusted defaults.}
+
+## Research-derived folder suggestions
+{Optional — only populate if HIGH confidence AND the suggestion comes from a domain-specific signal in your research (not generic "every project has X"). Format each bullet as `` `folder_name/` — one-line purpose and the domain signal that surfaced it ``. Examples:
+
+- `golden/` — fixture corpus of expected question/answer pairs (RAG evaluation is a recognized domain pattern per <source>)
+- `checkpoints/` — saved model states across training runs (the user mentioned multi-epoch training; ML training convention)
+- `audit_log/` — append-only record of sensitive-data reads (HIPAA/SOC2 compliance requirement)
+
+If no high-confidence, domain-specific folder signal surfaced: write "None". Err on the side of "None" — under-surfacing is fine, over-surfacing pollutes the proposal. Never invent generic folders like `tests/`, `docs/`, `utils/` here.}
+
 ## Confidence
 {Low/Medium/High — if low, say what you couldn't pin down}
 ```
@@ -103,6 +115,8 @@ Keep your response **tight and actionable**. The planner is going to use this to
 - Ignoring the pattern file's existing knowledge (it already has good defaults)
 - Infinite research — if the brief is written, stop
 - Opinions beyond what research supports — cite sources for non-obvious claims
+- **Inventing pattern-declared folder suggestions.** The `## Project-level footprint suggestions` section is verbatim from the pattern's `## Project-level footprint` — not your opinion. If the pattern has no footprint section, that section of your brief says "None."
+- **Over-surfacing research-derived folders.** The separate `## Research-derived folder suggestions` section exists for genuinely domain-informed signals (RAG → `golden/`, ML training → `checkpoints/`, compliance-heavy domain → `audit_log/`). It is NOT for generic "every project could use X" folders (`tests/`, `docs/`, `utils/`, `examples/` — skip). Emit only at HIGH confidence with a specific domain signal you can cite. When in doubt, return "None" for this section. You can't see other components so you can't judge cross-component structure — that's ce-planner's job.
 
 ## When to short-circuit
 

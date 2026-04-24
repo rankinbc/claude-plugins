@@ -34,6 +34,8 @@ The local sync database (SQLite for small-scale, or a pointer to an external Pos
 
 ## Starter code
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
+
 **`src/<package>/client.py`** (rate-limit-aware HTTP client):
 ```python
 import logging
@@ -112,6 +114,10 @@ pytest -q components/<component_name>/tests/
 # With mocked API responses (use `responses` lib in tests):
 pytest components/<component_name>/tests/test_rate_limit.py
 ```
+
+## Project-level footprint
+
+- `mappings/` — field-mapping tables between source and destination systems (YAML/JSON/CSV). Keeping these at the project root makes them version-controlled review artifacts and reusable if a second integration needs the same mapping.
 
 ## Interview follow-ups
 

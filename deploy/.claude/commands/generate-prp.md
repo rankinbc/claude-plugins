@@ -5,9 +5,10 @@
 Generate a complete Product Requirements Prompt (PRP) from an INITIAL.md-style feature spec. The PRP becomes the source of truth for implementation — include ALL context the implementation session will need, because that session may not have this conversation available.
 
 **Resolving `$ARGUMENTS`:**
-- If the user passed an explicit path (e.g., `/generate-prp INITIAL.md` or `/generate-prp PRPs/source/INITIAL.md`), use that path.
-- If the user passed `INITIAL.md` and that file doesn't exist at the project root, check `PRPs/source/INITIAL.md` — the intake file gets relocated there after the first successful PRP generation (see step "Archive the INITIAL" below).
-- If neither exists, stop and ask the user which intake file to read.
+- If no argument was passed, resolve to `PRPs/source/INITIAL.md` — scaffolded projects ship the intake there, and feature edits happen in place.
+- If the user passed an explicit path (e.g., `/generate-prp PRPs/source/INITIAL.md` or `/generate-prp PRPs/source/INITIAL_auth.md`), use that path.
+- If the user passed `INITIAL.md` and that file doesn't exist at the project root, check `PRPs/source/INITIAL.md` as a fallback (legacy behavior — projects scaffolded before INITIAL shipped in `PRPs/source/` may still have a root file, and users sometimes drop feature-specific `INITIAL_<slug>.md` at the root for the relocation step below to handle).
+- If nothing resolves, stop and ask the user which intake file to read.
 
 Read the resolved INITIAL file first. Understand what's being asked, what components exist, what examples are provided, what constraints matter.
 
@@ -20,6 +21,8 @@ If `INITIAL.md` has a `## COMPONENTS` section with one or more `### COMPONENT: <
 The mega-PRP approach keeps the implementation in a single plan with clear ordering, shared context (libraries, doc links, project-wide considerations), and aggregated validation gates. `/execute-prp` can then build the components in the right order in one session or across several.
 
 Components without a `## COMPONENTS` section: treat it as a single feature/project and write a normal PRP.
+
+**Scope note for option-B projects (scaffolded by `/new-project`):** the initial v1 build does NOT use `/generate-prp` — the v1 mega-PRP is written directly at scaffold time to `PRPs/v1_<slug>.md`. Use `/generate-prp` only for **adding features to an already-built project**. If you're here on a fresh scaffold (`.scaffold_manifest.json` shows `lifecycle.stage: "plan"` with all components still `scaffold_state: "stub"`), point the user at `/execute-prp PRPs/v1_<slug>.md` instead and stop.
 
 ---
 
@@ -42,11 +45,13 @@ Scale research effort to match. Don't over-research simple things.
 
 ### 1. Codebase Analysis (always)
 
-- Search for similar features/patterns already in the project (check `components/` for anything already scaffolded or built)
+Since `/generate-prp` is post-build for option-B projects, there IS a real codebase to analyze:
+
+- Search for similar features/patterns already in the project (`components/`, `src/<package>/`, and `PRPs/archive/` — archived PRPs show what patterns worked before)
 - Identify files worth referencing in the PRP
 - Note existing conventions (naming, structure, testing style)
 - Check test patterns so validation gates match what already works
-- For multi-component: note any shared infrastructure (common `requirements.txt`, shared utilities) that should stay consistent across components
+- For multi-component additions: note any shared infrastructure (common `requirements.txt`, shared utilities) that should stay consistent with what's already built
 
 ### 2. External Research — depth scales with task type
 
@@ -121,21 +126,19 @@ Score the PRP 1-10 (confidence in one-pass implementation success). If under 7, 
 
 ---
 
-## Archive the INITIAL
+## Relocate a root-placed INITIAL (fallback-only)
 
-After the PRP file is saved successfully, relocate `INITIAL.md` so the project root stays minimal:
+Scaffolded projects ship `INITIAL.md` at `PRPs/source/INITIAL.md` — this section does nothing in that common case. Only relevant when a user manually drops a feature spec at the project root (e.g., `INITIAL_auth.md`) and wants the root to stay tidy after generation:
 
 ```bash
-# Only run this on the FIRST successful generation, when INITIAL.md is still at the root.
+# Only runs if the resolved INITIAL file was at the project root.
 if [ -f "INITIAL.md" ]; then
   mkdir -p PRPs/source
   mv INITIAL.md PRPs/source/INITIAL.md
 fi
 ```
 
-`INITIAL.md` now lives at `PRPs/source/INITIAL.md` — historical source material, out of the day-to-day root listing. Subsequent `/generate-prp` invocations read from the relocated path (handled in the argument-resolution step at the top).
-
-Skip this step if `INITIAL.md` is already in `PRPs/source/` or if the user passed an explicit path that wasn't the root `INITIAL.md`.
+Skip this step entirely if the resolved file already lived in `PRPs/source/` or at a path the user typed explicitly.
 
 ---
 

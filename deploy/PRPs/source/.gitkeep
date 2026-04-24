@@ -1,2 +1,0 @@
-# After the first `/generate-prp`, the project's INITIAL.md is moved here.
-# Subsequent `/generate-prp` runs read from PRPs/source/INITIAL.md.

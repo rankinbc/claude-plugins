@@ -45,6 +45,29 @@ For each component:
 - **User explicitly asked for something different?** → honor user's ask
 - **Two components could share a stack?** → call that out (e.g., "both the analysis and the report use Python + pandas, so they share a virtual environment")
 
+### 2b. Aggregate project-level footprint suggestions
+
+Each research brief has two separate folder-suggestion sections:
+
+1. **`## Project-level footprint suggestions`** — pattern-declared. Trusted defaults.
+2. **`## Research-derived folder suggestions`** — domain-informed proposals from the researcher. May be empty.
+
+Aggregate each source **independently** (don't merge the two buckets — they surface to the user with different framing):
+
+**Pattern-declared:**
+- Dedupe by folder name across components. Two `analysis` components both suggesting `notebooks/` = one entry.
+- Merge overlapping purposes — pick the broader/clearer phrasing.
+- Single-component suggestions count the same as multi-component.
+- Forward only what ce-researcher returned. Don't invent.
+
+**Research-derived:**
+- Dedupe by folder name across components. If two briefs both surface `golden/` with different rationales, merge rationales.
+- If a research-derived folder has the same name as a pattern-declared one, **prefer the pattern-declared entry** and drop the research-derived duplicate (the pattern is the trusted authority).
+- Preserve the per-bullet rationale the researcher cited — users need to see *why* the folder is being suggested (it's what lets them judge it).
+- Forward only what ce-researcher returned. No cross-component invention.
+
+The two deduped sets become two sub-groups of the "Extra top-level folders" block in the proposal (see step 8). If both sets are empty, omit the block entirely.
+
 ### 3. Write the proposal
 
 Plain-language, user-facing. Structure:
@@ -65,6 +88,26 @@ Data flows like this: {one-sentence description of how the components connect �
 Under the hood I'll use {shared stack in simple terms — e.g., "Python and pandas across all three components"} — {one-sentence "why this."}
 
 {Optional: any risks or constraints the user should know about — e.g., "This runs on your laptop only, not a shared server" or "The CLI needs a Zendesk API key; I'll show you where to put it."}
+
+{Optional: **Extra top-level folders** block — include ONLY if step 2b produced at least one folder in either bucket. Present the two buckets as separate sub-groups so the user can see what's a trusted pattern default vs. a domain-informed research suggestion. Exact shape:
+
+**Extra top-level folders** (beyond the standard scaffold):
+
+*From your components' patterns* (trusted defaults):
+- `{pattern_folder_1}/` — {purpose}
+- `{pattern_folder_2}/` — {purpose}
+
+*From research on your domain* (review carefully — these come from the researcher's read of your specific project, not from a pattern):
+- `{research_folder_1}/` — {purpose, with the domain signal in parentheses or as the tail of the line}
+- `{research_folder_2}/` — {purpose}
+
+Keep any, all, or none — you can add your own too.
+
+Formatting rules:
+- If only pattern-declared folders exist: include only the first sub-group, drop the heading ("From your components' patterns") and just use "**Extra top-level folders**" with the bullets directly.
+- If only research-derived folders exist: keep the "*From research on your domain*" sub-heading so the user knows these are judgment calls, not trusted defaults.
+- If both exist: show both sub-groups with their sub-headings, pattern-declared first (most trustworthy first).
+- If both are empty: omit the whole block entirely. Silence is the signal.}
 
 Anything you'd change? Should I add, remove, rename, or merge any components?
 ```
@@ -122,7 +165,9 @@ Your entire output is the proposal text — ready for the main session to show t
 - Listing every library and version
 - "I think we should consider..." (commit to a choice)
 - Asking questions (the main session already did the interview)
-- More than one short paragraph + component bullets + one flow sentence + one flag (total length ≈ 150-250 words)
+- More than one short paragraph + component bullets + one flow sentence + one flag + optional footprint block (total length ≈ 150-250 words; add ~30 words if the footprint block is present)
+- **Inventing project-level folders that ce-researcher didn't surface.** Forward only what the research briefs returned — in either bucket (pattern-declared or research-derived). If you think a cross-component folder is obviously needed but no researcher surfaced it, flag it to the main session in a footnote rather than silently adding it to the proposal.
+- **Merging the two folder buckets into one undifferentiated list.** Pattern-declared and research-derived folders carry different levels of trust; users need to see which is which to make an informed call during iteration. Always keep them separated in the proposal (as long as both are non-empty).
 
 ## Example good output — three-component project
 

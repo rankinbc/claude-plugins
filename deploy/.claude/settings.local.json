@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[context-engineering] Read CLAUDE.md for project rules. Check HANDOFF.md — if present, read it first; the previous session left context. Workflow: edit INITIAL.md with your feature, then /generate-prp INITIAL.md, then /execute-prp PRPs/<slug>.md. Slash commands: /generate-prp, /execute-prp, /handoff. Reference: PRPs/README.md for the full PRP guide.'",
+            "command": "echo '[context-engineering] Read CLAUDE.md for project rules. Check HANDOFF.md — if present, read it first; the previous session left context. Workflow: edit PRPs/source/INITIAL.md for your next feature, then /generate-prp, then /execute-prp PRPs/<slug>.md. Slash commands: /generate-prp, /execute-prp, /handoff. Reference: PRPs/README.md for the full PRP guide.'",
             "timeout": 5
           }
         ]

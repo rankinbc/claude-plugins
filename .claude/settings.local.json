@@ -67,7 +67,22 @@
       "Skill(update-config)",
       "Bash(gh auth *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(cp /c/claude-workspace/claude-project-scaffolder/deploy/.gitignore /c/Users/badmin/projects/loan_collections/.gitignore)",
+      "Bash(cp /c/claude-workspace/claude-project-scaffolder/deploy/launch.bat /c/Users/badmin/projects/loan_collections/launch.bat)",
+      "Bash(cp /c/claude-workspace/claude-project-scaffolder/deploy/.claude/settings.local.json /c/Users/badmin/projects/loan_collections/.claude/settings.local.json)",
+      "Bash(cp /c/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/generate-prp.md /c/Users/badmin/projects/loan_collections/.claude/commands/generate-prp.md)",
+      "Bash(cp /c/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/execute-prp.md /c/Users/badmin/projects/loan_collections/.claude/commands/execute-prp.md)",
+      "Bash(cp \"C:/claude-workspace/claude-project-scaffolder/deploy/.gitignore\" \"C:/claude-workspace/TMOS_AI/projects/TMOS_Strategy_Lab/.gitignore\")",
+      "Bash(cp \"C:/claude-workspace/claude-project-scaffolder/deploy/.claude/settings.local.json\" \"C:/claude-workspace/TMOS_AI/projects/TMOS_Strategy_Lab/.claude/settings.local.json\")",
+      "Bash(cp \"C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/generate-prp.md\" \"C:/claude-workspace/TMOS_AI/projects/TMOS_Strategy_Lab/.claude/commands/generate-prp.md\")",
+      "Bash(cp \"C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/execute-prp.md\" \"C:/claude-workspace/TMOS_AI/projects/TMOS_Strategy_Lab/.claude/commands/execute-prp.md\")",
+      "Bash(cp \"C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/handoff.md\" \"C:/claude-workspace/TMOS_AI/projects/TMOS_Strategy_Lab/.claude/commands/handoff.md\")",
+      "Bash(cp C:/claude-workspace/claude-project-scaffolder/deploy/.gitignore C:/claude-workspace/TMOS_AI/projects/TMOS_World_Editor/.gitignore)",
+      "Bash(cp C:/claude-workspace/claude-project-scaffolder/deploy/.claude/settings.local.json C:/claude-workspace/TMOS_AI/projects/TMOS_World_Editor/.claude/settings.local.json)",
+      "Bash(cp C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/execute-prp.md C:/claude-workspace/TMOS_AI/projects/TMOS_World_Editor/.claude/commands/execute-prp.md)",
+      "Bash(cp C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/generate-prp.md C:/claude-workspace/TMOS_AI/projects/TMOS_World_Editor/.claude/commands/generate-prp.md)",
+      "Bash(cp C:/claude-workspace/claude-project-scaffolder/deploy/.claude/commands/handoff.md C:/claude-workspace/TMOS_AI/projects/TMOS_World_Editor/.claude/commands/handoff.md)"
     ],
     "deny": []
   },

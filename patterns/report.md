@@ -27,6 +27,8 @@ Input data (CSV from API export, DB query dumps, etc.) lives in `data/<source_na
 
 ## Starter files
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (a 3-line skeleton template + a trivial render script + a TODO marker). The files below are the implementation target `/execute-prp` uses during the build stage — matching the structure, sections, and constraints shown.
+
 **`templates/report.md.j2`** — the structural template (Jinja):
 
 ```jinja
@@ -251,6 +253,10 @@ ls output/<component_name>/*/report.md >/dev/null && echo "Report generated"
 # Template parses (catches Jinja syntax errors)
 python -c "from jinja2 import Template; Template(open('components/<component_name>/templates/report.md.j2').read()).render(report_title='x', report_date='2025-01-01', tldr='x', headline_metrics=[], narrative='x', charts=[], flags=[], next_period_focus='x')"
 ```
+
+## Project-level footprint
+
+- `templates/` — shared Jinja/HTML report layouts when the project has multiple reports that should look consistent. A project with only one report component usually doesn't need this (the component's own `templates/` folder is enough).
 
 ## INITIAL.md pre-fill hints
 

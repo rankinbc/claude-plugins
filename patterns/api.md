@@ -42,7 +42,7 @@ For dev, the SQLite DB file lives under `data/<component_name>/` at the project 
 
 ## Starter code
 
-Enough to show the shape; actual endpoints get added during `/execute-prp`.
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
 
 **`app/main.py`**:
 ```python
@@ -121,6 +121,11 @@ pytest -q components/<component_name>/tests/
 sleep 2 && curl -f http://127.0.0.1:8765/docs >/dev/null && echo "OK"
 kill %1
 ```
+
+## Project-level footprint
+
+- `migrations/` — DB schema migrations (Alembic or equivalent). Migrations are a project-level artifact — schema evolution affects every component that touches the DB, not just the API component that first created it.
+- `schemas/` — shared OpenAPI or JSON schema files when the API's types are consumed by other components (e.g., a frontend, a CLI, another service).
 
 ## Interview follow-ups
 

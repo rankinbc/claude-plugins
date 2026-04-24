@@ -28,6 +28,8 @@ Input data lives in `data/<source_name>/` at the project root. Shared deps (`req
 
 ## Starter code
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
+
 **`app.py`** (minimal runnable Streamlit):
 
 ```python

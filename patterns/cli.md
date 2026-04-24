@@ -34,6 +34,8 @@ If the CLI writes files for the user to consume, they go in `output/<component_n
 
 ## Starter code
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). `requirements.txt` / `pyproject.toml` / `.env.example` are shipped verbatim when called out below — dependencies and secrets structure need to be present for `/execute-prp` to run. The code below is the implementation target `/execute-prp` uses during the build stage.
+
 **`pyproject.toml`** (click-based with bin entry):
 ```toml
 [project]

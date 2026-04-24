@@ -26,6 +26,8 @@ The tracked-item markdown files live inside the component folder (they ARE the d
 
 ## Starter files
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (a skeleton template + a trivial runnable entry point + a TODO marker). The files below are the implementation target `/execute-prp` uses during the build stage — matching the structure, fields, and constraints shown.
+
 **Per-item markdown template** (dropped in the tracked-entity folder):
 
 ```markdown

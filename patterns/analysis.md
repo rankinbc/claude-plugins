@@ -22,6 +22,8 @@ Input CSV/Excel/JSON files live in `data/<source_name>/` at the project root. Re
 
 ## Starter code
 
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). The code below is the implementation target `/execute-prp` uses during the build stage — matching the structure, patterns, and constraints shown.
+
 **`analysis.py`**:
 
 ```python
@@ -103,6 +105,10 @@ python components/<component_name>/analysis.py
 ls output/<component_name>/*/report.md >/dev/null && echo "Deliverable exists"
 ls output/<component_name>/*/charts/*.png 2>/dev/null
 ```
+
+## Project-level footprint
+
+- `notebooks/` — exploratory hypothesis-testing notebooks outside the main analysis pipeline. Keep ad-hoc; promote anything durable into the component itself.
 
 ## Interview follow-ups
 

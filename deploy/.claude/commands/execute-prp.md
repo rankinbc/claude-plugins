@@ -4,6 +4,10 @@
 
 Implement whatever the PRP describes. PRPs can produce different kinds of deliverables — read the PRP first to understand what you're building.
 
+**Arguments:**
+- `$1` — path to the PRP (required)
+- `--component <name>` *(optional)* — if the PRP has multiple `## Component:` sections (option-B v1 mega-PRPs from `/new-project`), build only the named one. Others stay as stubs. Lifecycle stage flips to `"built"` only when ALL components end up with `scaffold_state: "built"`.
+
 ---
 
 ## Deliverable types
@@ -74,7 +78,59 @@ This keeps `PRPs/` a clean list of *active* plans. Completed PRPs are preserved 
 
 Failed/interrupted PRPs stay in `PRPs/` so the next session can pick them up.
 
-### 7. Reference back
+### 7. Advance the lifecycle and clean up scaffolder state
+
+**Only after a successful archive in step 6.** Skip entirely if `.scaffolding/manifest.json` does not exist (non-scaffolder project, or `/execute-prp` was re-run on an already-built project).
+
+Two flavors:
+- **Full build** (no `--component` flag, OR all components are now `"built"` after this run) — update the manifest, then **delete the entire `.scaffolding/` folder** and strip the README status banner. The project ends up clean with zero scaffolder footprint.
+- **Partial build** (`--component <name>` used, other components still stubs) — update only the named component's `scaffold_state` to `"built"`, leave `lifecycle.stage` at `"plan"`, and leave `.scaffolding/` in place. No README changes.
+
+1. **Update `.scaffolding/manifest.json`** — flip the appropriate component(s) `scaffold_state` to `"built"`; if all components are now built, also flip `lifecycle.stage` to `"built"` and append a history entry. Use Python to preserve formatting:
+
+   ```bash
+   python - <<'PY'
+   import json, datetime, pathlib
+   p = pathlib.Path(".scaffolding/manifest.json")
+   m = json.loads(p.read_text())
+   # Replace BUILT_COMPONENTS with the names you just finished building.
+   # For a full build, list every component in the manifest.
+   BUILT_COMPONENTS = [<names from this run>]
+   for c in m.get("components", []):
+       if c["name"] in BUILT_COMPONENTS:
+           c["scaffold_state"] = "built"
+   all_built = all(c.get("scaffold_state") == "built" for c in m.get("components", []))
+   if all_built and m.get("lifecycle", {}).get("stage") != "built":
+       m["lifecycle"]["stage"] = "built"
+       m["lifecycle"].setdefault("history", []).append({
+           "stage": "built",
+           "at": datetime.date.today().isoformat(),
+           "by": "/execute-prp",
+       })
+   p.write_text(json.dumps(m, indent=2) + "\n")
+   print("ALL_BUILT" if all_built else "PARTIAL")
+   PY
+   ```
+
+2. **If and only if the above printed `ALL_BUILT`, clean up scaffolder state:**
+
+   a. **Strip the README status banner.** Remove the entire block from `<!-- status:begin -->` through `<!-- status:end -->` (inclusive of both markers) from `README.md`. If the markers are missing, skip silently.
+
+   b. **Delete `.scaffolding/` entirely.**
+      ```bash
+      rm -rf .scaffolding/
+      ```
+      (Windows: `Remove-Item -Recurse -Force .scaffolding` in PowerShell, or `rmdir /S /Q .scaffolding` in cmd.)
+
+   c. **Announce the transition:**
+
+      > Lifecycle: plan → **built**. All components built; `.scaffolding/` removed and README banner stripped. The project is now in its clean, ready-to-use state.
+
+   If the result was `PARTIAL`, instead announce:
+
+      > Component `<name>` built. Manifest updated; other components still stubs. Project remains in `"plan"` stage until all components are built.
+
+### 8. Reference back
 
 Archived PRPs live at `PRPs/archive/<date>_<slug>.md` — still readable, just out of the main `PRPs/` listing. Grep them if you need context on historical work.
 

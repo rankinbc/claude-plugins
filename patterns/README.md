@@ -8,7 +8,7 @@ When `/new-project` classifies each component's purpose, it picks a matching pat
 
 - **Default stack** — what technology makes sense for this shape
 - **Folder structure** — what goes inside `components/<name>/`
-- **Starter code** — minimal runnable skeleton (I/O paths rewritten to the project's shared `data/` and `output/` folders)
+- **Starter code** — **reference idiom** for `/execute-prp` to follow during the build stage. The scaffolder ships only minimum-viable stubs; the real implementation, guided by this reference code plus the pattern's gotchas, gets written by `/execute-prp`.
 - **Gotchas** — shape-specific things to bake into the project CLAUDE.md
 - **Validation approach** — what counts as "working" for this shape
 
@@ -56,7 +56,11 @@ Anything Claude should *follow* when editing the component lives in these two se
 
 ### Sections that drive scaffolding but don't land in any doc
 
-- `## Starter files` or `## Starter code` — the files `ce-scaffold` writes. Reference inputs/outputs using relative paths (`../../data/<source>/`, `../../output/<component>/<date>_<run>/`). The files themselves are the output; no prose goes into README or CLAUDE.md from here.
+- `## Starter files` or `## Starter code` — **reference idiom** for `/execute-prp`, not code the scaffolder ships. `ce-scaffold` reads this section only to identify *which files* the pattern expects (by filename) and their stack. It then writes minimum-viable stubs (imports + trivial demo + TODO) — never the pattern's real code. Reference inputs/outputs in stubs using relative paths (`../../data/<source>/`, `../../output/<component>/<date>_<run>/`). The code blocks below are what `/execute-prp` uses as the build target, not what ships at scaffold time.
+
+### Sections that surface via `ce-researcher` and propose project-level structure
+
+- `## Project-level footprint` — optional. Folders components of this shape often benefit from at the **project root** (not inside the component). `ce-researcher` forwards these verbatim in its return; `ce-planner` aggregates + dedupes across all components in the project, then the main session proposes the set to the user during design iteration. Approved folders get scaffolded with one-line README stubs and documented in the project's `CLAUDE.md` structure block. Format: bulleted list, each bullet `` `folder_name/` — one-line purpose. ``. Most patterns don't need this; omit the section entirely when there's no cross-component shared-structure need.
 
 ### Kit-internal sections (never emitted to scaffolded projects)
 

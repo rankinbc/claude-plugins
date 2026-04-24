@@ -75,14 +75,15 @@ Dispatch them via the **Task tool**, setting `subagent_type` to the agent name. 
 > Here's what we'll do together:
 >
 > &nbsp;&nbsp;**Step 1** → I ask a few questions to understand your overall goal
-> &nbsp;&nbsp;**Step 2** → We break the project into components (named pieces of work) and map out how data flows between them
-> &nbsp;&nbsp;**Step 3** → I research the best way to build each component (takes ~30 seconds; I'll work quietly)
-> &nbsp;&nbsp;**Step 4** → I propose a full project design in plain language for your approval
-> &nbsp;&nbsp;**Step 5** → Once you approve, I create the project folder with all the components
-> &nbsp;&nbsp;**Step 6** → I verify everything is in order
-> &nbsp;&nbsp;**Step 7** → You open your new project with one click and we continue from there
+> &nbsp;&nbsp;**Step 2** → Quick check: I name the pieces ("components") and you confirm the breakdown
+> &nbsp;&nbsp;**Step 3** → I research each component in parallel (~30 seconds; you'll see live progress)
+> &nbsp;&nbsp;**Step 4** → I show you one unified design — folder path, components, flow, stack — all at once. You approve or adjust.
+> &nbsp;&nbsp;**Step 5** → I create the project folder, then verify everything
+> &nbsp;&nbsp;**Step 6** → I offer to launch your new project and kick off the build automatically
 >
-> Usually takes 4-7 minutes. You'll see me work — I'll narrate what I'm doing.
+> Usually takes 4-7 minutes. Two moments where I'll need you (steps 2 and 4); the rest you can watch.
+>
+> **Prefer to review every piece step by step?** Say "walk me through each step" and I'll switch to fine-grained mode.
 >
 > **Ready? Tell me — what are you trying to build?** A rough sentence is fine.
 
@@ -94,7 +95,7 @@ Then wait for the user's answer.
 
 **Announce the step**:
 
-> **Step 1/7 — Understanding your goal**
+> **Step 1/6 — Understanding your goal**
 
 Do NOT ask all questions upfront. Ask one at a time. Let their answers drive what you ask next. Goal: gather enough to understand what pieces of work exist and how data flows through them.
 
@@ -117,39 +118,35 @@ Do NOT ask all questions upfront. Ask one at a time. Let their answers drive wha
 
 ---
 
-### 3. Decompose into components
+### 3. Component sanity check (light — not an approval ceremony)
 
-**Announce**:
+**Goal**: catch the rare "I meant 1 component, not 3" before expensive research fires. NOT a stop-and-approve moment; aim for under 10 seconds of user attention.
 
-> **Step 2/7 — Mapping the components**
+**Announce briefly**:
+
+> **Step 2/6 — Component breakdown**
+
+**Break the user's intent into 1-N components silently** (each purposeful, snake_case-named, mapped to one pattern from `patterns/`). Then show a one-line sanity check:
+
+> I'll set this up as **3 components**: `ticket_insights` (pattern analysis), `weekly_report` (recurring report), `refresh_cli` (CLI tool).
 >
-> I'm going to break what you described into a few named pieces of work. Each piece does one thing cleanly. Tell me if the breakdown makes sense, or if you'd split it differently.
+> Sound right, or want a different breakdown?
 
-**Break the user's intent into 1-N components.** Each component is:
-- **Purposeful** — does one thing
-- **Named** — snake_case, descriptive (e.g., `ticket_insights`, `weekly_report`, `refresh_cli`)
-- **Mapped to one pattern** from `patterns/` (see table in Step 4)
+If the user replies "yes" / "looks good" / "go" / silence-after-beat → proceed to step 4 (classification is already done internally). If they want changes → iterate once, then proceed.
 
-**Propose the breakdown in plain language, then confirm with the user:**
+**Do NOT** show per-component descriptions, flow arrows, or folder trees here. Those all consolidate into step 9's unified proposal. This is just a component-count + naming check.
 
-> Based on what you've described, I see three pieces:
->
-> 1. **`ticket_insights`** — pulls patterns out of the raw support tickets (which tickets repeat, how long they take to resolve, what's trending). *This is a data analysis.*
-> 2. **`weekly_report`** — takes the insights and turns them into a Monday-morning summary with a chart or two. *This is a recurring report.*
-> 3. **`refresh_cli`** — one command you run when you want to re-pull the latest tickets into the project. *This is a CLI tool.*
->
-> Does that match what you had in mind? Want to add, remove, or rename any of them?
-
-**Name suggestions — guidelines:**
+**Name suggestions — guidelines (apply silently when proposing):**
 - snake_case, short, descriptive
-- Use nouns for things that produce artifacts (`weekly_report`, `customer_summary`)
-- Use verbs or verb+noun for tools that do things (`refresh_cli`, `send_digest`)
-- Ask the user to confirm or rename — they know their domain vocabulary better than you do
+- Nouns for things that produce artifacts (`weekly_report`, `customer_summary`)
+- Verbs or verb+noun for tools that do things (`refresh_cli`, `send_digest`)
 
-**Edge cases:**
-- **User describes one thing**: still use `components/<name>/` for consistency. One-component projects still benefit from the structure (clean separation between project infra and the thing itself).
-- **User describes something huge**: push back gently. "This sounds like a multi-project effort — let's scope v1 down to [X]. We can add more later." Don't scaffold 8 components.
-- **Two "components" are really one thing**: merge them. "The analysis and the report feel tightly coupled — want me to treat that as one `weekly_summary` component with both in it, or keep them separate so you can run the analysis without regenerating the report?"
+**Edge cases (handle in the one-line sanity check, not a separate conversation):**
+- **User describes one thing**: still use `components/<name>/` for consistency. Say "1 component: `<name>`" — no defense needed.
+- **User describes something huge**: push back before the sanity check. "This sounds like multiple projects — let me scope v1 to [X] and we can add more later. OK?" Only show the sanity check once the scope is reasonable.
+- **Two "components" are really one thing**: merge silently. Don't surface the internal debate to the user.
+
+**Escape hatch**: if the user signaled in step 1 ("walk me through each step"), revert to the old-style expanded proposal with per-component descriptions, flow discussion as a separate step, structure approval as a separate step, etc. See Guidelines below.
 
 ---
 
@@ -175,89 +172,43 @@ Read each matching `patterns/<shape>.md` to understand its default stack, folder
 
 ---
 
-### 5. Flow discussion — inputs and outputs per component
+### 5. Work out flow and structure silently (no user approval yet)
 
-**Announce**:
+**Don't announce this step** — it happens internally between the component sanity check and the research dispatch. The user sees no output here.
 
-> Now let's map how data flows through the components.
+Do this work:
 
-Walk through each component:
+1. **Determine each component's inputs and outputs.** For each component, what data sources does it read from (`data/<source>/`) and where do its artifacts land (`output/<component>/<YYYY-MM-DD>_<run>/`)? Infer from the interview — if the user said "I want Monday reports from the ticket data," the flow is obvious. Ask only if a component's I/O is genuinely ambiguous after the interview (rare).
+2. **Decide the folder structure.** Canonical: `components/`, `data/<source>/`, `output/<component>/`, `PRPs/`, `.claude/`, plus the `data/<source>/` subfolders for declared sources and `output/<component>/` subfolders for producing components.
 
-- **What are this component's inputs?** (data source, another component's output, none)
-- **What are its outputs?** (files, a document, an API response, updates to a shared store)
-- **Who/what triggers it?** (user runs it, a schedule, another component)
+**Conventions (apply silently):**
+- Output: `output/<component_name>/<YYYY-MM-DD>_<run_description>/` — date first, never overwrite.
+- Input: `data/<source_name>/` — one subfolder per external source, named by the source.
+- Every component that produces artifacts has a dedicated output folder.
 
-**Propose a data-flow summary in plain language:**
+**The user will see all of this once, unified, in step 9** (design proposal). Don't surface it piecemeal here — that's the whole point of the consolidation.
 
-> Here's how the pieces connect:
->
-> - `refresh_cli` pulls fresh tickets from Zendesk → saves them in `data/zendesk_exports/`
-> - `ticket_insights` reads from `data/zendesk_exports/` → writes analysis to `output/ticket_insights/<date>_<run>/`
-> - `weekly_report` reads the latest `output/ticket_insights/` → writes Monday's summary to `output/weekly_report/<date>_<run>/`
->
-> Does that flow match what you want? Anything that goes somewhere else?
-
-**Output path convention (always):**
-- `output/<component_name>/<YYYY-MM-DD>_<run_description>/`
-- Date first (sorts chronologically), then a short human-readable run label
-- Never overwrite previous runs
-
-**Input path convention (always):**
-- `data/<source_name>/` — one subfolder per external source
-- Named by the source (`data/zendesk_exports/`, `data/hubspot_contacts/`, `data/google_analytics/`)
-
-**Every output has a home.** If a component generates something, it lands in `output/<component>/`. Don't leave this implicit.
-
----
-
-### 6. Propose the project structure
-
-*(Still within Step 2/7 — don't re-announce a new step number here.)*
-
-Present a plain-language tree + rules summary. Get approval before moving on.
-
-> Here's the folder layout I'll create:
->
-> ```
-> support_workflow/
-> ├── CLAUDE.md                   (rules for Claude — including this structure)
-> ├── README.md                   (one-page overview)
-> ├── INITIAL.md                  (the project intent, component by component)
-> ├── PRPs/                       (where implementation plans live)
-> ├── .claude/                    (permissions + slash commands)
-> │
-> ├── components/                 (all the work lives here)
-> │   ├── refresh_cli/            (pulls tickets from Zendesk)
-> │   ├── ticket_insights/        (analyzes the tickets)
-> │   └── weekly_report/          (generates Monday's summary)
-> │
-> ├── data/                       (inputs — organized by source)
-> │   └── zendesk_exports/
-> │
-> └── output/                     (all artifacts — organized by component + date)
->     ├── ticket_insights/
->     └── weekly_report/
-> ```
->
-> **Rules I'll enforce in `CLAUDE.md`:**
-> - Components live in `components/<name>/` — never loose at the project root
-> - Inputs live in `data/<source>/` — never inside a component folder
-> - Outputs go to `output/<component>/<date>_<description>/` — never overwriting prior runs
-> - No new top-level folders without updating `CLAUDE.md`
->
-> Want any of this different?
-
-If they want changes (a different folder name, combining two components, etc.), adjust and re-propose.
+**Escape hatch**: if the user asked for step-by-step mode in step 1, revert to the old per-step surfacing — announce "Now let's map how data flows," show flow arrows, get approval; then announce structure proposal, show tree, get approval. See Guidelines.
 
 ---
 
 ### 7. Dispatch ce-researcher per component (parallel)
 
-**Announce**:
+**Announce with per-component scope** (not a generic "I'll work quietly"). Tell the user exactly what's being researched for which component so the wait feels purposeful:
 
-> **Step 3/7 — Researching each component**
+> **Step 3/6 — Researching each component** *(back in ~30 seconds)*
 >
-> Give me ~30 seconds to look into the best way to build each piece. You don't need to do anything.
+> - `<component_1>` → researching <stack/framework from pattern + any user-named specifics>
+> - `<component_2>` → researching <...>
+> - `<component_3>` → researching <...>
+
+Worked example for a 3-component project:
+
+> **Step 3/6 — Researching each component** *(back in ~30 seconds)*
+>
+> - `ticket_insights` → researching pandas + data analysis gotchas
+> - `weekly_report` → researching Jinja2 templates + recurring-report patterns
+> - `refresh_cli` → researching click + Zendesk API idioms
 
 **For each component, dispatch ce-researcher via Task tool.** All dispatches in a single message so they run in parallel.
 
@@ -281,9 +232,17 @@ Example invocation pattern (you, the orchestrator, decide prompts per component)
 
 **Skip research entirely** for components where the pattern file fully covers it (e.g., `research.md`, `product_doc.md` for simple cases). Just note "pattern defaults apply" for that component.
 
-**After all researchers return**, print a brief confirmation:
+**After all researchers return**, print a per-component summary (one salient finding each — pick from each brief's top `## Key patterns to follow` bullet or the stack-recommendation line, whichever is more informative for that component):
 
-> Research complete. I looked at: {list of frameworks/topics, one line}.
+> Research complete:
+>
+> - `ticket_insights`: pandas 2.2; fiscal-year handling flagged
+> - `weekly_report`: Jinja2 + date-stamped output folders; TL;DR-first layout
+> - `refresh_cli`: click 8 + httpx; rate-limit backoff pattern confirmed
+>
+> Synthesizing the full design now...
+
+Keep each line under ~70 characters. If a research brief says "pattern defaults apply, no additional research needed," surface that component as `<name>: pattern defaults` — don't fabricate findings.
 
 ---
 
@@ -291,7 +250,7 @@ Example invocation pattern (you, the orchestrator, decide prompts per component)
 
 **Announce**:
 
-> **Step 4/7 — Putting the design together**
+> **Step 4/6 — Putting the design together**
 
 Dispatch ce-planner via Task tool once with the full multi-component spec:
 
@@ -315,34 +274,35 @@ ce-planner returns a proposal in plain language. Show it to the user essentially
 
 ---
 
-### 9. Iterate
+### 9. Unified proposal + iteration (the single big approval moment)
 
-User may want changes. Refine and re-propose. Keep iterating until they say "go."
+**Pre-compute the target path** before showing the proposal. Default: `~/projects/<slugified-project-name>`. Expand `~` to the user's home directory. No separate ask — the path is part of the proposal and the user can change it during iteration.
+
+**Show ce-planner's proposal verbatim, preceded by a target-path line.** The user sees one block with: target path + description + components + flow + stack + any extra top-level folders. Example shape:
+
+> I'd create **`support_workflow`** at `~/projects/support_workflow`. (Want a different location? Tell me during review.)
+>
+> <ce-planner output here — components bullets + data-flow sentence + stack + optional "Extra top-level folders" block + the "Anything you'd change?" closer>
+
+**Iteration handling.** User's response routes to one of:
+
+- *"Looks good"* / *"go"* / silence-after-beat → approve the full design. Lock in: component list, flow, stack, `project_level_folders` (possibly empty), and target path.
+- *"Change the path to X"* → update target path, keep everything else.
+- *"Skip `<folder>/`"* / *"drop templates/"* → remove from `project_level_folders`.
+- *"Also add `<folder>/`"* → accept user-added folders. If they provide a purpose, use it; otherwise use `"Added by user — edit this README to describe what goes here."`
+- *"Rename `<component>` to `<name>`"* → rename. If the rename changes a pattern (rare), re-dispatch ce-researcher for just that component.
+- *"I need a different stack for `<component>`"* → honor the ask. Re-dispatch ce-researcher for that component if it's a meaningful shift.
+- Major restructuring → re-run ce-planner with the updated spec, show the new proposal.
+
+Keep iterating until the user says "go" (or equivalent). When they do, proceed to scaffold.
 
 ---
 
-### 10. Ask for target path
-
-Offer a sensible default:
-
-> **Where should I create the project folder?**
->
-> Common choices:
-> - `~/projects/<project-name>` *(recommended — keeps all your projects organized together)*
-> - `~/Documents/<project-name>`
-> - Any other path you'd like
->
-> Press enter for the default, or type your preferred path.
-
-Accept relative or absolute paths. Expand `~` if present. If they press enter, use `~/projects/<slugified-project-name>`.
-
----
-
-### 11. Scaffold
+### 10. Scaffold
 
 **Announce**:
 
-> **Step 5/7 — Creating your project**
+> **Step 5/6 — Creating your project**
 >
 > Here's what I'm about to do:
 
@@ -350,13 +310,16 @@ Print a scaffolding manifest BEFORE files appear:
 
 > ```
 > Creating folder:           <target path>
+>   ├─ .scaffolding/           (transient scaffolder state + first-run notes — auto-deleted by /execute-prp on successful build)
+>   │    └─ README.md         (what's done + what's next + newcomer tips)
 >   ├─ CLAUDE.md              (rules for Claude — includes your project structure + component gotchas)
 >   ├─ README.md              (one-page overview)
->   ├─ INITIAL.md             (pre-filled intent — one block per component)
 >   ├─ PRPs/                  (where future plans will live)
+>   │    └─ source/
+>   │         └─ INITIAL.md   (pre-filled intent — one block per component; edit for new features)
 >   ├─ .claude/
 >   │    ├─ settings.local.json    (permissions)
->   │    └─ commands/              (/generate-prp, /execute-prp, /handoff)
+>   │    └─ commands/              (/new-feature, /generate-prp, /execute-prp, /handoff)
 >   ├─ components/
 >   │    ├─ <component_1>/
 >   │    ├─ <component_2>/
@@ -366,9 +329,10 @@ Print a scaffolding manifest BEFORE files appear:
 >   ├─ output/
 >   │    ├─ <component_1>/      (for its artifacts)
 >   │    └─ <component_2>/
->   ├─ launch.[sh|command|bat]  (one-click Claude Code launcher for your OS)
->   └─ .gitignore
+>   └─ .gitignore             (ready if you choose to `git init` later — optional)
 > ```
+>
+> *(If the user approved any `project_level_folders` during design iteration, add one line per folder before the `.gitignore` line — e.g., `>   ├─ notebooks/             (exploratory hypothesis-testing outside the analysis pipeline)`. Omit entirely if the list is empty.)*
 >
 > Writing files now...
 
@@ -378,46 +342,60 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
 
 1. **Create the target directory** and the folder skeleton:
    - `components/` (empty — ce-scaffold will fill per component)
-   - `data/<source>/` for each declared input source (with `.gitkeep`)
-   - `output/<component>/` for each component that produces artifacts (with `.gitkeep`)
+   - `data/<source>/` for each declared input source — inside, write a one-line `README.md` (not `.gitkeep`):
+     ```
+     # <source> inputs
+
+     Drop <source> files here. Consumed by: <comma-separated list of components that read this source>.
+     ```
+   - `output/<component>/` for each component that produces artifacts — inside, write a one-line `README.md`:
+     ```
+     # <component> outputs
+
+     Run artifacts from the `<component>` component land here as `<YYYY-MM-DD>_<run-description>/` subfolders. Keep latest ~5; move older to `_archive/`.
+     ```
    - `PRPs/`
    - `PRPs/archive/` (with `.gitkeep`) — `/execute-prp` moves completed PRPs here on success
-   - `PRPs/source/` (with `.gitkeep`) — `/generate-prp` relocates `INITIAL.md` here after first successful run
+   - `PRPs/source/` — holds `INITIAL.md` (written in item 7 below), so no `.gitkeep` is needed
 
 2. **`.claude/settings.local.json`** — copy from `deploy/.claude/settings.local.json`.
 
-3. **`.claude/commands/`** — copy all from `deploy/.claude/commands/` (`generate-prp.md`, `execute-prp.md`, `handoff.md`).
+3. **`.claude/commands/`** — copy all from `deploy/.claude/commands/` (`new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`).
 
 4. **`.gitignore`** — copy from `deploy/.gitignore`.
 
-5. **Launch script** — detect OS and copy only the matching one:
+5. **`PRPs/templates/prp_base.md`** + **`PRPs/README.md`** — copy both from `deploy/PRPs/`.
 
-   ```bash
-   case "$(uname -s 2>/dev/null || echo Windows)" in
-     Darwin*)               echo "macos" ;;
-     Linux*)                echo "linux" ;;
-     MINGW*|MSYS*|CYGWIN*)  echo "windows" ;;
-     *)                     echo "unknown" ;;
-   esac
-   ```
+6. **`PRPs/source/INITIAL.md`** — copy `deploy/INITIAL.md` as-is (blank template). In the option-B flow, `INITIAL.md` is the **per-feature intake for post-build feature work**, not the scaffold spec — so it ships empty, waiting for the user's next feature idea. The v1 implementation plan is written directly to `PRPs/v1_<project_slug>.md` in step 11d below, not funneled through INITIAL.md.
 
-   | Detected OS | File | Chmod |
-   |---|---|---|
-   | `macos` | `launch.command` | `chmod +x launch.command` |
-   | `linux` | `launch.sh` | `chmod +x launch.sh` |
-   | `windows` | `launch.bat` | (not needed) |
-   | `unknown` | `launch.sh` (safe default) | `chmod +x launch.sh` |
-
-6. **`PRPs/templates/prp_base.md`** + **`PRPs/README.md`** — copy both from `deploy/PRPs/`.
-
-7. **`INITIAL.md`** — use `deploy/INITIAL.md` as the skeleton, but pre-fill with content from the conversation. One `## COMPONENT: <name>` block per component with its purpose, inputs, outputs, pattern, and any specific notes. See `deploy/INITIAL.md` for the exact shape.
-
-8. **`README.md`** — a SHORT project README (one page max):
+7. **`README.md`** — a SHORT project README (one page max):
+   - **Status banner block at the very top**, delimited by HTML comment markers `<!-- status:begin -->` / `<!-- status:end -->` so `/execute-prp` can rewrite the banner cleanly when the build completes. Default (plan stage — scaffold just finished, PRP already written) text:
+     ```markdown
+     <!-- status:begin -->
+     > **Status: Planned — implementation plan ready at `PRPs/v1_<slug>.md`.**
+     > Next step: run `/execute-prp PRPs/v1_<slug>.md` in Claude Code to build the components.
+     <!-- status:end -->
+     ```
+     `/execute-prp` replaces the block contents with the "built" banner on first successful full build. Substitute the actual slug.
    - Project title + one-paragraph description
    - "Project structure" — copy the tree you showed in Step 6
    - "Components" — one line per component: name → purpose → pattern
    - "How to run" — the entry command per component (e.g., `streamlit run components/<name>/app.py`, `python components/<name>/scripts/run.py`)
-   - "How to develop with Claude" — brief pointer to `/generate-prp INITIAL.md` → `/execute-prp` flow
+   - "How to develop with Claude" — brief pointer for the initial build (`/execute-prp PRPs/v1_<slug>.md`) AND for adding features after build (`/new-feature` for the guided path, or manually edit `PRPs/source/INITIAL.md` → `/generate-prp` → `/execute-prp PRPs/<slug>.md`)
+   - "How to reopen this project in Claude Code" — one line: `cd <project path> && claude` (no launcher scripts ship)
+   - One line at the top directing newcomers to `.scaffolding/README.md` for first-time setup (mention it will be auto-deleted by `/execute-prp` on successful build)
+
+8. **Project-level folders approved during design iteration.** For each entry in `project_level_folders` (may be empty):
+   - Create `<project_root>/<folder_name>/`
+   - Write `<project_root>/<folder_name>/README.md` with shape:
+     ```
+     # <folder_name>
+
+     <purpose line from the approved suggestion>
+     ```
+   Same one-line-README convention as `data/<source>/README.md` and `output/<component>/README.md`. If the user added a folder during iteration without providing a purpose, use `Added by user — edit this README to describe what goes here.` as the purpose line.
+
+**Do NOT run `git init`.** The user might not want version control in this folder, or might plan to place it inside an existing repo. `.scaffolding/README.md` surfaces `git init` as one optional setup item — the user decides.
 
 #### 11b. Dispatch ce-scaffold per component (parallel)
 
@@ -439,9 +417,10 @@ Each ce-scaffold instance writes `components/<name>/` in isolation and returns:
 - Files it created
 - Gotchas from the pattern (for aggregation into project CLAUDE.md)
 - Validation commands for this component
+- **First-run setup commands** (install deps, copy `.env.example`) — aggregated into `.scaffolding/README.md`'s Optional setup list
 - Any flags for shared dependencies
 
-#### 11c. Build project CLAUDE.md dynamically
+#### 11c. Build project CLAUDE.md, the .scaffolding/ manifest + README, dynamically
 
 After all ce-scaffold reports return, **you** (main session) write the project's `CLAUDE.md` by assembling:
 
@@ -466,6 +445,7 @@ After all ce-scaffold reports return, **you** (main session) write the project's
 - All outputs land in `output/<component>/<YYYY-MM-DD>_<description>/` — never at project root, never overwriting prior runs
 - Never add a new top-level folder without updating this section first
 - Never rename `components/`, `data/`, `output/`, or `PRPs/`
+{If `project_level_folders` is non-empty, inject an extra bullet here listing each one by name with its purpose — e.g., `- Project-level folders \`notebooks/\` (exploratory hypothesis-testing) and \`templates/\` (shared report layouts) are part of this project's declared structure — use each as described in its README; don't improvise alternatives.` Omit this bullet entirely if no extras were approved.}
 
 ---
 
@@ -504,17 +484,174 @@ After all ce-scaffold reports return, **you** (main session) write the project's
 
 **Why this structure:** the project-specific enforcement rules and per-component gotchas sit at the TOP. Claude reads these first and knows the structural contract before falling through to generic defaults.
 
-After CLAUDE.md is written, print:
+**Then write `.scaffolding/manifest.json`**. The `.scaffolding/` folder is the sole location for all transient scaffolder state — it will be auto-deleted by `/execute-prp` on successful v1 build, leaving no scaffolder footprint in the finished project. The manifest is the authoritative status source during the plan → built transition. Shape:
+
+```json
+{
+  "scaffold_version": 1,
+  "scaffolded_at": "<ISO-8601 date, e.g., 2026-04-24>",
+  "scaffolder": "claude-project-scaffolder /new-project",
+  "project_name": "<Human-readable project name>",
+  "project_slug": "<folder name, e.g., TMOS_Strategy_Lab>",
+  "stack": "<primary language/runtime, e.g., Python 3.11+>",
+  "requirements_doc": "<relative path if the user wrote a spec before scaffolding, e.g., REQUIREMENTS.md — omit the field if no such doc exists>",
+  "lifecycle": {
+    "stage": "plan",
+    "history": [
+      {"stage": "plan", "at": "<ISO-8601 date>", "by": "/new-project"}
+    ]
+  },
+  "components": [
+    {
+      "name": "<component_name>",
+      "pattern": "<pattern filename, e.g., cli.md>",
+      "purpose_one_line": "<one sentence, lowercase>",
+      "inputs": ["<declared input path, e.g., data/rom/>", "..."],
+      "outputs": ["<declared output path, e.g., output/<name>/<YYYY-MM-DD>_<desc>/>"],
+      "entry_command": "<the one command from CLAUDE.md's How to run>",
+      "scaffold_state": "stub",
+      "first_run_setup": ["<line from ce-scaffold's first_run_setup return>", "..."]
+    }
+  ],
+  "data_sources": [
+    {"name": "<source_name>", "purpose": "<line from data/<source>/README.md>"}
+  ],
+  "project_level_folders": [
+    {"name": "<folder>", "purpose": "<purpose line approved during design iteration>"}
+  ],
+  "notes_for_generate_prp": "Initial build does NOT use /generate-prp — the v1 PRP was written directly by /new-project at PRPs/v1_<slug>.md. /generate-prp only runs post-build for new features (via PRPs/source/INITIAL.md). After /execute-prp has built real code, this manifest's scaffold_state values are stale — use it only as a project map, not a ground-truth inspector."
+}
+```
+
+Assembly rules for the manifest:
+- `lifecycle.stage` is `"plan"` at `/new-project` time — the PRP is written at scaffold time (step 11d), so the project goes straight to plan stage. `/execute-prp` advances it to `"built"` on first successful full build AND flips every component's `scaffold_state` from `"stub"` to `"built"` at the same time. Each stage transition appends a `{stage, at, by}` entry to `lifecycle.history`. Two stages total — `"scaffold"` is not an observable state in the option-B flow.
+- `scaffold_state` at the component level is `"stub"` at scaffold time and only flips to `"built"` inside `/execute-prp` when that component's section of the PRP passes validation. It exists separately from `lifecycle.stage` so `/execute-prp --component <name>` (partial builds) can reflect per-component build state while the project-level stage stays at `"plan"` until ALL components are built.
+- `entry_command` comes from the `**How to run**` line in the component's CLAUDE.md section.
+- `first_run_setup` is the deduplicated aggregation of every ce-scaffold's `first_run_setup` lines for that component (the same lines that feed `.scaffolding/README.md`).
+- `requirements_doc` is present only when the user scaffolded around an existing spec (e.g., the user ran `/new-project` pointing at a pre-written `REQUIREMENTS.md`). Otherwise omit the field.
+- `data_sources` and `project_level_folders` carry the same data that went into the per-folder one-line READMEs.
+- Do NOT pretty-print with tabs — two-space indent for readability; the file will rarely be read by humans directly.
+
+Then write `.scaffolding/README.md`. This is the first-run onboarding doc — lives alongside the manifest in the `.scaffolding/` folder, and will be auto-deleted with the rest of `.scaffolding/` on first successful `/execute-prp`. Shape:
+
+```markdown
+# First-run notes — <Project Name>
+
+Welcome. This folder has everything you need for your first session — the manifest tracking scaffold state, these notes, and the auto-chain helper script (if you chose auto-chain during scaffolding). **`/execute-prp` will delete this whole folder automatically on a successful v1 build** — you don't need to clean anything up. If you'd rather not wait, nothing outside this folder depends on anything inside it; safe to delete early.
+
+## The two stages of your project
+
+Your project is in stage 1 of two. Each stage produces something different:
+
+1. **Plan** *(just finished)* — folder structure, rules in `CLAUDE.md`, starter skeletons in each `components/<name>/`, and the implementation blueprint at `PRPs/v1_<slug>.md`. The skeletons don't do useful work yet; they're the shape the real code gets built into. The PRP is the step-by-step build plan.
+2. **Build** *(next — `/execute-prp PRPs/v1_<slug>.md`)* — Claude works the plan step by step, filling in the skeletons with real working code and passing validation gates along the way.
+
+After the v1 build is done, adding new features is easiest via `/new-feature` — a guided interview that fills `PRPs/source/INITIAL.md` for you and chains into `/generate-prp` and `/execute-prp`. You can also do it manually: edit `PRPs/source/INITIAL.md` (the per-feature intake template), run `/generate-prp`, run `/execute-prp PRPs/<new-slug>.md`.
+
+## First time with Claude Code? (skip if you're comfortable)
+
+A few things that catch newcomers off guard — none are problems:
+
+- **Permission prompts are normal.** When `/execute-prp` runs shell commands (install deps, run tests), Claude Code asks before each one. Approve the ones you expect; deny anything surprising. You're always in control.
+- **Nothing is destructive by default.** Claude won't delete or force-push. If an edit looks wrong, hit escape and redirect.
+- **Need to stop mid-work?** Run `/handoff` — Claude writes a `HANDOFF.md` summarizing state. Next session starts by reading it and picks up where you left off.
+- **`/execute-prp` failed partway?** Safe to re-run. The PRP stays in `PRPs/<slug>.md` (not archived) until all validation passes, so resuming just continues from where it stopped.
+- **Glossary:** _component_ = a named piece of work; _pattern_ = the shape/stack behind it (dashboard, cli, etc.); _PRP_ = the detailed implementation plan Claude generates; _INITIAL.md_ = your spec that drives the PRP.
+
+## What was set up for you
+
+- Folder structure: `components/` (<N> component folders), `data/<source>/`, `output/<component>/`, `PRPs/`
+- `PRPs/v1_<slug>.md` — the implementation plan for your v1 build, written by `/new-project` from the interview + research. Read it if you want; `/execute-prp` will follow it step by step.
+- `PRPs/source/INITIAL.md` — blank template for post-build feature work (ignore until v1 is built)
+- `CLAUDE.md` — project rules + per-component gotchas (auto-loaded every Claude Code session)
+- `README.md` — one-page overview
+- `.claude/` — permissions and the four slash commands: `/new-feature`, `/generate-prp`, `/execute-prp`, `/handoff`
+- `.gitignore` — ready if you want to use git (no repo initialized — see optional setup below)
+
+## Build your project (inside Claude Code)
+
+1. Open a terminal and run: `cd <project path> && claude`
+2. *(Optional)* Skim `PRPs/v1_<slug>.md` to see what Claude plans to build
+3. Type `/execute-prp PRPs/v1_<slug>.md` — Claude builds the components and runs validation gates
+
+That's it — one command to go from scaffold to working v1.
+
+## Optional setup
+
+Pick what applies — none of these are required to start building.
+
+<aggregated first_run_setup lines from ce-scaffold reports, deduplicated, one bullet each — e.g.:>
+- [ ] `pip install -r components/<name>/requirements.txt`
+- [ ] `cp components/<name>/.env.example components/<name>/.env` — then fill in secrets
+- [ ] Want version control? `git init && git add . && git commit -m "Initial scaffold"`
+<omit the entire section if there are no ce-scaffold setup items AND the user explicitly said they don't use git during the interview; otherwise always include the git bullet last>
+
+## Where to learn more
+
+- `../CLAUDE.md` — rules Claude follows in this project
+- `../PRPs/README.md` — how the PRP workflow works end to end
+- `../components/<name>/README.md` — per-component orientation
+
+## Cleanup
+
+Automatic — on a successful `/execute-prp PRPs/v1_<slug>.md` run, this whole folder is deleted along with the status banner in `../README.md`. No action needed.
+```
+
+**Assembly rules for `.scaffolding/README.md`:**
+
+- Target length: ~45-55 lines. If it's longer, compress.
+- "The two stages" block stays first — this is the main orientation most new users need.
+- "What was set up" is mostly static — only the component-count hint and the v1 PRP slug vary. Never claim a git repo exists (the scaffolder doesn't create one).
+- "Optional setup" aggregates `first_run_setup` lists from every ce-scaffold return, deduplicated verbatim. Put stack-specific items (pip install, env copy) first; the git bullet last so users who don't use git can ignore the whole section cleanly.
+- Do NOT include stack conjecture — only emit setup items ce-scaffold explicitly returned.
+- Framing matters: "optional" not "required." A user should feel comfortable skipping git entirely.
+- Keep the "Done with setup?" block — it's the explicit signal that the folder is safe to delete.
+- Paths in the "Where to learn more" section are written relative to `.scaffolding/` (so prefix them with `../`).
+
+After both files are written, print:
 
 > All files created.
+
+#### 11d. Write the v1 mega-PRP inline
+
+**You** (main session) now synthesize `PRPs/v1_<project_slug>.md` directly — no intermediate INITIAL.md, no `/generate-prp` step. You already have every piece of context needed: the user interview, ce-researcher briefs per component, ce-scaffold returns (stub files + gotchas + validation commands + first_run_setup), the design proposal, data flow, build order rationale, and (if present) the user's pre-written `REQUIREMENTS.md`.
+
+Follow the shape of `PRPs/templates/prp_base.md` adapted for multi-component scope. Target ≤ 800 lines — if heading longer, you're duplicating CLAUDE.md content; cite instead of inline.
+
+Required sections in order:
+
+1. **Header** — `name:` line, `description:` block ending with both invocations: `/execute-prp PRPs/v1_<slug>.md` (full build) and `/execute-prp PRPs/v1_<slug>.md --component <name>` (per-component partial build).
+2. **Goal / Why / What / Success Criteria** — overall goal restated as target end-state; business value; user-visible behavior; `- [ ]` checklist (one item per component + one item per REQUIREMENTS.md v1-milestone checkbox if present).
+3. **All Needed Context**:
+   - `Documentation & References` yaml block — shared entries (CLAUDE.md, REQUIREMENTS.md if present) + per-component URLs pulled from each research brief's "Documentation links" section.
+   - `Current Codebase tree` — the post-scaffold shape (components as stubs).
+   - `Desired Codebase tree` — annotated with files `/execute-prp` will produce, per component.
+   - `Known Gotchas` — one code block per component from its research_brief "Gotchas" + ce-scaffold gotchas, deduplicated; plus one block of project-wide invariants (determinism, no-silent-failures, reuse-don't-fork rules — from REQUIREMENTS.md §6 or equivalent).
+4. **Implementation Blueprint**:
+   - `Shared infrastructure (build first)` — if a `src/<package>/` project-level folder exists, spec its public surface (the types/classes every component imports).
+   - Per-component section: `Component: <name> (<pattern>)` → Purpose, Inputs, Outputs, Entry command, Tasks yaml block (in order, MODIFY/CREATE notes referencing stub file paths), Pseudocode blocks with CRITICAL/PATTERN/GOTCHA markers, Component-specific validation bash block.
+   - `Build order` — one paragraph based on data-flow dependencies + shared-lib-first rule.
+5. **Validation Loop** — three levels:
+   - Level 1: project-wide lint + typecheck (ruff, mypy across components + src + tests)
+   - Level 2: per-component unit tests (aggregated from each component's validation_commands)
+   - Level 3: integration smoke — one or two commands exercising end-to-end data flow
+6. **Final Validation Checklist** — `- [ ]` items: lint clean, typecheck clean, every entry command runs, end-to-end smoke produces artifacts, one item per REQUIREMENTS.md v1 milestone check (if present), manifest flipped to `built`.
+7. **Anti-Patterns** — top 3-5 from aggregated gotchas.
+8. **Context pointers** — cite `CLAUDE.md`, `REQUIREMENTS.md` (if present), per-component READMEs, `PRPs/README.md`.
+
+Write the file. Then print:
+
+> PRP written: `PRPs/v1_<project_slug>.md` (<rough line count> lines). Ready for `/execute-prp`.
+
+**Why inline and not a sub-agent**: the main session already has every piece of context from the interview through the scaffold returns. Dispatching a sub-agent would require re-briefing it with all that context — more tokens, not fewer. Main session writing inline is the simpler path.
 
 ---
 
 ### 12. Dispatch ce-validator
 
-**Announce**:
+**Announce** (fold under step 5 — verification is the tail end of "create", not a separate user-facing step):
 
-> **Step 6/7 — Verifying everything looks good**
+> Verifying everything looks good...
 
 Dispatch ce-validator via Task tool:
 
@@ -528,6 +665,7 @@ Dispatch ce-validator via Task tool:
 >   - ...
 > declared_inputs: <list of data/<source>/ folders>
 > declared_outputs: <list of output/<component>/ folders>
+> project_level_folders: <list of {name, purpose} for approved extras, or empty list>
 > stack: <project stack>
 >
 > Run validation and return a report.
@@ -540,46 +678,72 @@ Based on result:
 
 ---
 
-### 13. Handoff
+### 13. Handoff — offer auto-chain or hand off cleanly
 
 **Announce**:
 
-> **Step 7/7 — Ready to go!**
+> **Step 6/6 — Ready to go!**
 
-Give clear, OS-specific next steps — show ONLY the instructions for the detected OS:
+**Ask the auto-chain question** first (don't dump OS-specific instructions yet):
 
-> Your project is ready at `<target path>`
+> Your project is ready at `<target path>`. The implementation plan is already written at `PRPs/v1_<slug>.md`.
 >
-> **For macOS** (if Darwin detected):
-> > Double-click `launch.command` in the project folder to open Claude Code.
-> >
-> > *(First time only: if macOS warns "unidentified developer," right-click `launch.command` → Open.)*
-> >
-> > Or from Terminal:
-> > ```
-> > cd <target path>
-> > ./launch.command
-> > ```
+> **Ready to build?** I can launch your new project and kick off `/execute-prp PRPs/v1_<slug>.md` automatically — Claude will fill in the stubs with real code and run validation gates. Or say "not yet" if you want to review the scaffold + PRP first.
 >
-> **For Windows**:
-> > Double-click `launch.bat` in the project folder.
-> >
-> > Or from a terminal:
-> > ```
-> > cd <target path>
-> > launch.bat
-> > ```
->
-> **For Linux**:
-> > From a terminal:
-> > ```
-> > cd <target path>
-> > ./launch.sh
-> > ```
->
-> When Claude Code opens, the project's `CLAUDE.md` loads automatically and `INITIAL.md` has all your components already specified. Your first move is usually `/generate-prp INITIAL.md` — that produces a single implementation plan covering all components in the right order.
+> **[yes / not yet]**
 
-**Do NOT** run anything in the scaffolded project from your current session. Your job ends here.
+**If the user says yes** (auto-chain path):
+
+1. Detect OS (reuse the `uname -s` detection from step 11a).
+2. Write a one-time helper script inside `.scaffolding/` (the folder you already created in step 11c). The script cd's to the parent (project root) before launching Claude Code, and deletes only itself on exit — the `.scaffolding/README.md` stays so the user can read it during their first session:
+   - **macOS / Linux** — `<target>/.scaffolding/start.sh`:
+     ```bash
+     #!/usr/bin/env bash
+     # One-time auto-chain helper — deletes itself after launching.
+     cd "$(dirname "$0")/.."
+     trap 'rm -- "$0"' EXIT
+     exec claude "/execute-prp PRPs/v1_<slug>.md"
+     ```
+     `chmod +x` it. Substitute the actual slug.
+   - **Windows** — `<target>\.scaffolding\start.bat`:
+     ```batch
+     @echo off
+     cd /d "%~dp0..\"
+     claude "/execute-prp PRPs/v1_<slug>.md"
+     del "%~f0"
+     ```
+     Substitute the actual slug.
+3. Launch it in the background from the orchestrator session (reuse the OS detection):
+   - **macOS**: `open -a Terminal <target>/.scaffolding/start.sh &`
+   - **Linux**: `(x-terminal-emulator -e "<target>/.scaffolding/start.sh" &) 2>/dev/null || (gnome-terminal -- "<target>/.scaffolding/start.sh" &) 2>/dev/null || true`
+   - **Windows**: `start "" cmd /c "<target>\\.scaffolding\\start.bat"`
+4. Print confirmation with direct, step-by-step manual fallback:
+
+   > Launching... a new terminal window should open with `/execute-prp PRPs/v1_<slug>.md` already running in your new project.
+   >
+   > **If the new window doesn't appear within ~5 seconds**, do this instead:
+   >
+   > 1. Open a terminal and run: `cd <target path> && claude`
+   > 2. When Claude Code opens, type `/execute-prp PRPs/v1_<slug>.md` and press Enter.
+   >
+   > **Heads-up:** I created a hidden folder called `.scaffolding/` inside your project. It contains the scaffold manifest, first-run notes, and optional setup steps (install deps, copy `.env`, `git init`). **`/execute-prp` will delete this folder automatically when the v1 build succeeds** — leaving your project clean and ready for real work. Read `.scaffolding/README.md` if you want the extra context first.
+
+**If the user says "not yet"** (manual path):
+
+Show direct, step-by-step instructions — not "open this file and read it":
+
+> Your project is ready at `<target path>`. When you're ready to build, do these two things:
+>
+> 1. **Open Claude Code in the project folder.** Open a terminal and run: `cd <target path> && claude`
+> 2. **Type `/execute-prp PRPs/v1_<slug>.md`** and press Enter. Claude reads the v1 implementation plan I already wrote, fills in the stubs with real working code, and runs validation gates.
+>
+> That's it — one command to go from scaffold to working v1.
+>
+> **About the hidden `.scaffolding/` folder I created:** it holds the scaffold manifest + first-run notes + optional setup steps. `/execute-prp` deletes it automatically on successful v1 build — your project ends up clean, no scaffolder footprint left behind. Read `.scaffolding/README.md` if you want the extra context first.
+>
+> `CLAUDE.md` auto-loads every session and tells Claude the rules for this project. You don't need to read it — it's for Claude.
+
+**Either path**: your job ends here. Do NOT run anything else in the orchestrator session.
 
 ---
 
@@ -610,13 +774,19 @@ If the user wants **pure knowledge work** — one or more research components, n
 - **When in doubt, pick the simplest option.** Streamlit over React. SQLite over Postgres. Markdown over database.
 - **Always end with a clear handoff.** They should know exactly what command to run next.
 - **Use `components/<name>/` even for one-component projects.** Consistency matters more than saving one directory level.
+- **Honor the step-by-step escape hatch.** The default flow consolidates approvals (one sanity check + one unified proposal). If the user signals they want fine-grained review — phrases like "walk me through each step," "one piece at a time," "let me review each part" — revert to the old expanded flow: expose flow discussion as its own approval moment (step 5), structure proposal as its own (step 6), target path as a separate ask (old step 10). The work is identical; only the presentation changes.
 
 ---
 
 ## Exit criteria
 
 You're done when:
-- Target folder exists with the full structure (components/, data/, output/, PRPs/, .claude/, CLAUDE.md, README.md, INITIAL.md, .gitignore, launcher)
+- Target folder exists with the full structure: root holds `CLAUDE.md`, `README.md`, `.gitignore`; plus the dirs `.scaffolding/` (transient scaffolder state), `components/`, `data/`, `output/`, `PRPs/`, `.claude/`
+- `.scaffolding/` contains `manifest.json` (authoritative lifecycle + component tracker), `README.md` (first-run onboarding), and optionally `start.bat`/`start.sh` (auto-chain helper, self-deleting on launch). The whole folder is auto-deleted by `/execute-prp` on successful v1 build.
+- `PRPs/source/INITIAL.md` contains the pre-filled spec (ships in its final home — no relocation expected)
+- Each `data/<source>/` and `output/<component>/` contains a one-line `README.md` (not `.gitkeep`)
+- Any approved `project_level_folders` (e.g., `notebooks/`, `templates/`) exist at the project root with their own one-line `README.md` — or none if the user approved no extras
 - Every component has a populated `components/<name>/` folder with its own README.md
 - The project's `CLAUDE.md` has the project-structure enforcement block + one component section per component + aggregated validation
-- The user knows the exact next step (`cd <path> && claude` then `/generate-prp INITIAL.md`)
+- `.scaffolding/README.md` exists with "Two stages / First time with Claude Code / What was set up / Build your project / Optional setup / Where to learn more / Cleanup" sections. The Optional setup section lists only items ce-scaffold returned (plus an optional git bullet — the scaffolder never runs `git init`). The Cleanup section notes that `/execute-prp` auto-deletes the folder.
+- The user receives direct step-by-step handoff instructions (`cd <path> && claude` → type `/execute-prp PRPs/v1_<slug>.md`) plus explicit mention that `.scaffolding/` is auto-deleted on successful build.

@@ -17,6 +17,7 @@ A prompt with:
 - **components** — list of `{name, pattern, expected_entry}` tuples (one per component)
 - **declared_inputs** — list of `data/<source>/` folders that should exist
 - **declared_outputs** — list of `output/<component>/` folders that should exist
+- **project_level_folders** — optional list of `{name, purpose}` tuples for extra top-level folders approved during design (e.g., `notebooks/`, `templates/`). Empty or omitted if the project didn't add any.
 - **stack** — primary language/runtime (e.g., "Python 3.11")
 
 ## What to check
@@ -27,8 +28,11 @@ Run these in order. Stop on the first blocker.
 
 The project root must have:
 - `CLAUDE.md`
-- `README.md`
-- `INITIAL.md`
+- `README.md` (must contain the status banner markers `<!-- status:begin -->` and `<!-- status:end -->` with a "Planned" stage banner between them)
+- `.scaffolding/` (directory) containing:
+  - `manifest.json` — non-empty; must parse as JSON and have `lifecycle.stage == "plan"` at scaffold time
+  - `README.md` — non-empty first-run onboarding doc
+  - (optional) `start.bat` or `start.sh` — auto-chain helper if the user picked auto-chain
 - `.gitignore`
 - `components/` (directory)
 - `data/` (directory)
@@ -36,13 +40,13 @@ The project root must have:
 - `PRPs/` (directory)
 - `PRPs/templates/prp_base.md`
 - `PRPs/README.md`
+- `PRPs/source/INITIAL.md` (blank per-feature template — option B does NOT pre-fill this at scaffold time)
+- `PRPs/v1_<slug>.md` — the v1 mega-PRP, written inline by `/new-project` at scaffold time. This is the file `/execute-prp` will run for the initial build.
 - `PRPs/archive/` (directory — `/execute-prp` moves completed PRPs here; must exist at scaffold time so the command has somewhere to land)
-- `PRPs/source/` (directory — `/generate-prp` relocates `INITIAL.md` here after first run; must exist at scaffold time)
 - `.claude/settings.local.json`
 - `.claude/commands/generate-prp.md`
 - `.claude/commands/execute-prp.md`
 - `.claude/commands/handoff.md`
-- At least one of `launch.sh` / `launch.command` / `launch.bat`
 
 If any blocker fails, return FAIL with what's missing.
 
@@ -57,7 +61,8 @@ For each component in `components`:
 
 - Every folder in `declared_inputs` exists under `data/`
 - Every folder in `declared_outputs` exists under `output/`
-- Each should contain at least a `.gitkeep` so git tracks the structure
+- Each should contain at least a `README.md` (one line explaining the folder's purpose is enough — also serves the git-tracking role that `.gitkeep` used to)
+- If `project_level_folders` was provided, every folder in that list exists at the project root AND contains a non-empty `README.md`. Empty list is fine — most projects have none.
 
 ### 4. Project CLAUDE.md has required structure (blocker)
 
@@ -73,10 +78,16 @@ If any of these are missing, return FAIL with what's missing.
 
 ### 5. JSON validity (blocker)
 
-`.claude/settings.local.json` must parse as valid JSON. Run:
+Both JSON files must parse:
 ```bash
 python -c "import json; json.load(open('<project_root>/.claude/settings.local.json'))"
+python -c "import json; json.load(open('<project_root>/.scaffolding/manifest.json'))"
 ```
+
+Additionally, verify the manifest's structural contract:
+- Top-level `lifecycle.stage == "plan"` (option-B initial scaffold state)
+- `components` array contains one entry per component passed in the input, each with `scaffold_state: "stub"` and non-empty `name`, `pattern`, `purpose_one_line`, `entry_command`
+- `scaffold_version` is present (integer)
 
 ### 6. Slash command parsability (warn)
 
@@ -98,12 +109,20 @@ Look at the `## Validation gates` block in project CLAUDE.md. For each command:
 
 Report mismatches as warnings.
 
-### 9. INITIAL.md is filled in (warn)
+### 9. v1 PRP has required structure (blocker)
 
-`INITIAL.md` should be populated (not the raw template):
-- A `## PROJECT` or top-level description section with real content (not just the placeholder)
-- One `## COMPONENT: <name>` block per declared component
-- Each component block has non-empty Purpose / Inputs / Outputs
+`PRPs/v1_<slug>.md` was written inline by `/new-project`. It must contain:
+- A `name:` or `# ` header line near the top naming the project
+- A `description:` block mentioning both `/execute-prp PRPs/v1_<slug>.md` (full build) and `--component <name>` (partial build) invocations
+- `## Goal`, `## Why`, `## What`, and `### Success Criteria` sections
+- `## All Needed Context` with `Documentation & References` + gotchas blocks
+- `## Implementation Blueprint` with one subsection per component (match names from input)
+- `## Validation Loop` with lint/test/integration-smoke levels
+- `## Final Validation Checklist` with `- [ ]` items
+
+If any of these are missing, return FAIL — the PRP is what `/execute-prp` follows, so gaps there mean the build will fail.
+
+Note: `PRPs/source/INITIAL.md` intentionally ships **blank** (a per-feature template for post-build feature work). Do NOT warn on its emptiness — that's the option-B design.
 
 ### 10. Gitignore sanity (info)
 
@@ -113,10 +132,13 @@ Verify `.gitignore` includes patterns for the stack in use (e.g., `__pycache__/`
 
 Confirm the shipped slash commands contain the lifecycle logic documented for the deployed project:
 
-- `.claude/commands/execute-prp.md` — contains the archive step (grep for `PRPs/archive` and `mv`). This is the PRP-archive-on-success mechanism.
-- `.claude/commands/generate-prp.md` — contains INITIAL relocation logic (grep for `PRPs/source` and `mv INITIAL.md`). This is the root-cleanup-after-first-PRP mechanism.
+- `.claude/commands/execute-prp.md` — must contain:
+  - the archive step (grep for `PRPs/archive` and `mv`)
+  - the lifecycle advance step 7 (grep for `.scaffolding/manifest.json` and `rm -rf .scaffolding`) — this is the option-B cleanup on build
+  - reference to the `--component` flag for partial builds
+- `.claude/commands/generate-prp.md` — contains the post-build feature flow (INITIAL.md → PRP). Should note that it's NOT used for initial build (option-B scope note).
 
-If either is missing, warn — the command files may have been overwritten or downgraded from an older template. Not a blocker (the project still scaffolds correctly; the lifecycle just won't self-manage), but worth surfacing to the main session so the user can re-copy from `deploy/`.
+If any of these wiring pieces is missing, warn — the command files may have been overwritten or downgraded from an older template. Not a blocker (the project still scaffolds correctly; the lifecycle just won't self-manage), but worth surfacing to the main session so the user can re-copy from `deploy/`.
 
 ## Return format
 
@@ -131,17 +153,19 @@ Structured report for the main session:
 
 ## Checks
 
-- Project-root structure — all required files and folders present (incl. PRPs/archive/, PRPs/source/)
+- Project-root structure — all required files and folders present (incl. .scaffolding/{manifest.json,README.md}, PRPs/v1_<slug>.md, PRPs/source/INITIAL.md blank template, PRPs/archive/)
+- README.md — status banner markers present
 - Component folders — <N>/<N> populated with README + code
 - Declared I/O folders — all present
 - Project CLAUDE.md — has structure enforcement, <N> component sections, validation gates
-- settings.local.json — valid JSON
+- settings.local.json + .scaffolding/manifest.json — valid JSON
+- Manifest lifecycle.stage == "plan", components array covers all declared components with scaffold_state=stub
 - Slash commands — 3/3 have bodies
 - Python syntax check — no errors
 - Validation commands — all tools declared in requirements.txt
-- INITIAL.md — filled in per component
+- v1 PRP — has all required sections (Goal/Why/What/Context/Blueprint/Validation/Checklist)
 - .gitignore looks good (info)
-- Lifecycle wiring — execute-prp references PRPs/archive, generate-prp references PRPs/source
+- Lifecycle wiring — execute-prp references PRPs/archive + .scaffolding cleanup, generate-prp scoped to post-build features
 
 ## Recommended action for main session
 

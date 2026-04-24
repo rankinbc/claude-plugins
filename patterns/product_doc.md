@@ -30,6 +30,8 @@ Published documents (reviewed and shared) land in `output/<component_name>/<YYYY
 
 ## Starter files
 
+> **`product_doc` is a special case:** the deliverable is the markdown itself. ce-scaffold *does* ship the section-header skeleton below (it IS the work product's shape), but leaves each section body as `[/execute-prp fills this in based on PRPs/source/INITIAL.md]`. No executable code ships — there's nothing to execute.
+
 **`templates/prd.md`** — a real PRD skeleton worth shipping:
 
 ```markdown
