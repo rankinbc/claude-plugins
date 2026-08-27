@@ -2,7 +2,7 @@
 
 Command-line utility with subcommands, config, structured output.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/) lives at the project root. The CLI's `pyproject.toml` typically lives at the project root when the CLI is THE main component, or inside the component folder when it coexists with other components.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root. The CLI's packaging metadata — dependencies **and** its `[project.scripts]` bin entry — goes in that root `pyproject.toml`, with package discovery pointed at this component's `src/`. There is no component-local `pyproject.toml`.
 
 ## Default stack
 
@@ -14,7 +14,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                   # Purpose / inputs / outputs / how to run
+├── README.md                   # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                   # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── src/
 │   └── <package_name>/
 │       ├── __init__.py
@@ -24,19 +25,20 @@ components/<component_name>/
 │       │   ├── __init__.py
 │       │   └── *.py            # One subcommand per file
 │       └── utils/
-├── tests/
-│   ├── conftest.py
-│   └── test_*.py
-└── pyproject.toml              # Bin declaration + deps (scoped to this component)
+└── tests/
+    ├── conftest.py
+    └── test_*.py
 ```
+
+The bin declaration and dependencies live in the **root** `pyproject.toml`, not here.
 
 If the CLI writes files for the user to consume, they go in `output/<component_name>/<YYYY-MM-DD>_<run>/` at the project root. If the CLI reads user-provided inputs, they come from `data/<source_name>/` at the project root (or from paths the user passes on the command line).
 
 ## Starter code
 
-> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). `requirements.txt` / `pyproject.toml` / `.env.example` are shipped verbatim when called out below — dependencies and secrets structure need to be present for `/execute-prp` to run. The code below is the implementation target `/execute-prp` uses during the build stage.
+> **Reference idiom for `/execute-prp`**, not what ce-scaffold ships. The scaffolder writes minimum-viable stubs (imports + a trivial "scaffolded stub" demo + a TODO marker). Dependencies and the bin entry go in the **root** `pyproject.toml`, written by the main session from ce-scaffold's `## Dependencies` return — ce-scaffold writes no manifest inside the component. The code below is the implementation target `/execute-prp` uses during the build stage.
 
-**`pyproject.toml`** (click-based with bin entry):
+**Root `pyproject.toml`** (click-based, with the bin entry and package discovery pointed at this component):
 ```toml
 [project]
 name = "<cli-name>"
@@ -49,10 +51,18 @@ dependencies = [
 [project.scripts]
 <cli-name> = "<package_name>.cli:main"
 
+# Package discovery points at the component's src/ — the manifest is at the root,
+# the code stays in the component.
+[tool.setuptools.packages.find]
+where = ["components/<component_name>/src"]
+
 [tool.pytest.ini_options]
+testpaths = ["tests", "components"]
+addopts = "-q --tb=short --no-header -ra --maxfail=3"   # keeps failing-gate output small
 cache_dir = "~/.cache/pytest"
 
 [tool.ruff]
+output-format = "concise"    # default "full" reprints source under every violation
 cache-dir = "~/.cache/ruff"
 ```
 
@@ -95,13 +105,13 @@ def scan(directory: str, as_json: bool, quiet: bool):
 From the project root:
 
 ```bash
-pipx install components/<component_name>
+pipx install .
 <cli-name> scan ./some-dir
 <cli-name> scan ./some-dir --json
 <cli-name> apply ./some-dir --yes
 ```
 
-During dev: `pip install -e components/<component_name>` and run the same commands.
+During dev: `pip install -e .` from the project root and run the same commands.
 
 ## Gotchas for CLAUDE.md
 
@@ -120,7 +130,7 @@ From the project root:
 ```bash
 ruff check components/<component_name>/src/
 pytest -q components/<component_name>/tests/
-pip install -e components/<component_name>
+pip install -e .
 <cli-name> --help >/dev/null && echo "CLI invokable"
 <cli-name> --version
 ```

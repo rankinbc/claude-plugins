@@ -2,7 +2,7 @@
 
 Sync data between two systems. Handle rate limits, retries, resumability, error recovery.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -14,7 +14,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                   # Purpose / inputs / outputs / how to run
+├── README.md                   # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                   # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── src/
 │   └── <package>/
 │       ├── __init__.py
@@ -25,10 +26,10 @@ components/<component_name>/
 │       └── cli.py              # run / sync-once / backfill commands
 ├── alembic/
 ├── tests/
-├── pyproject.toml              # Scoped to this component
-├── Dockerfile                  # For deployment (if this component deploys standalone)
-└── .env.example                # Secrets template (component-specific)
+└── Dockerfile                  # For deployment (if this component deploys standalone)
 ```
+
+Dependencies go in the root `pyproject.toml`; secrets go in the root `.env`. Name the keys this component needs in `## Gotchas for CLAUDE.md` — ce-scaffold reports them and the main session writes the root `.env.example`.
 
 The local sync database (SQLite for small-scale, or a pointer to an external Postgres for larger) lives under `data/<component_name>/` at the project root. Per-run logs and failed-item dumps for manual review land in `output/<component_name>/<YYYY-MM-DD>_<run>/`.
 
@@ -101,7 +102,7 @@ def upsert_issue(db, issue_data: dict):
 - **Transactions per entity**: each unit's sync is a transaction. Partial failure rolls back that unit, other units continue.
 - **Observability**: log structured JSON per cycle (started_at, repo, fetched, inserted, updated, duration_ms, errors).
 - **Graceful SIGTERM**: finish the current unit, exit cleanly. Don't leave half-synced state.
-- **Secrets only in .env**. No tokens in config.yaml, no tokens in code.
+- **Secrets only in the project-root `.env`**, loaded via `load_dotenv(PROJECT_ROOT / ".env")`. No tokens in `config.yaml`, no tokens in code, no component-local `.env`.
 - **Backfill command**: separate entry point for re-syncing one entity from scratch.
 
 ## Validation

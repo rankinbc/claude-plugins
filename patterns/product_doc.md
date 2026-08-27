@@ -2,7 +2,7 @@
 
 PRDs, one-pagers, launch briefs, retros, design docs — structured product writing where the output is a document, not code.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -16,7 +16,8 @@ No runtime. Output is a file.
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── templates/
 │   ├── prd.md                # Blank PRD template
 │   ├── one_pager.md          # Short summary doc
@@ -227,7 +228,7 @@ From the project root:
 ```bash
 # Edit drafts in components/<component_name>/drafts/ — pure markdown, any editor
 # For PDF export (optional — requires pandoc + weasyprint or wkhtmltopdf):
-pip install -r requirements.txt
+pip install -e .
 python components/<component_name>/export.py components/<component_name>/drafts/prd-feature-x.md
 # Published PDF + markdown copy lands in output/<component_name>/<date>_<doc_slug>/
 ```

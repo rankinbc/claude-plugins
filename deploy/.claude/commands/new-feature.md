@@ -101,6 +101,8 @@ Skip anything the user already answered. Ground follow-ups in what they just sai
 
 ### Step 3/4 — Classify: single vs. multi-component
 
+Before classifying, **read `components/<name>/CLAUDE.md` for every existing component the feature might touch.** Those files carry each component's pattern gotchas and load automatically only once Claude reads a file inside the folder — which interviewing alone doesn't do. Their contents shape what you should be asking about.
+
 Based on answers, decide silently (don't announce the table):
 
 - **Single-component feature** (fits inside one existing component, no new component needed) → fill `## FEATURE`, `## SHARED DOCUMENTATION`, `## OTHER CONSIDERATIONS`. Leave `## COMPONENTS` empty or delete it.

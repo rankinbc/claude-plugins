@@ -2,7 +2,7 @@
 
 Interactive view of existing data. User wants to explore, filter, visualize.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, project-level requirements.txt/pyproject.toml) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -19,12 +19,12 @@ Fallback stacks if Streamlit isn't right:
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
-├── app.py                    # Streamlit entry point
-└── .env.example              # If any secrets (component-specific)
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
+└── app.py                    # Streamlit entry point
 ```
 
-Input data lives in `data/<source_name>/` at the project root. Shared deps (`requirements.txt`, `pyproject.toml` with cache hygiene) live at the project root.
+Input data lives in `data/<source_name>/` at the project root. Dependencies live in the root `pyproject.toml` — never a component-local manifest. Secrets, if any, live in the root `.env`; name the keys in `## Gotchas for CLAUDE.md` and ce-scaffold reports them for the root `.env.example`.
 
 ## Starter code
 
@@ -69,22 +69,25 @@ col2.metric("Columns", len(df.columns))
 st.dataframe(df.head(20))
 ```
 
-**Project-level `requirements.txt`** (at project root, shared across Python components):
-```
-streamlit>=1.30
-pandas>=2.0
-plotly>=5.18
-```
-
-**Project-level `pyproject.toml`** (with cache hygiene baked in):
+**Project-level `pyproject.toml`** (the single dependency manifest, shared across all components, with cache hygiene baked in):
 ```toml
+[project]
+dependencies = [
+    "streamlit>=1.30",
+    "pandas>=2.0",
+    "plotly>=5.18",
+]
+
 [tool.pytest.ini_options]
+testpaths = ["tests", "components"]
+addopts = "-q --tb=short --no-header -ra --maxfail=3"   # keeps failing-gate output small
 cache_dir = "~/.cache/pytest"
 
 [tool.mypy]
 cache_dir = "~/.cache/mypy"
 
 [tool.ruff]
+output-format = "concise"    # default "full" reprints source under every violation
 cache-dir = "~/.cache/ruff"
 ```
 
@@ -93,7 +96,7 @@ cache-dir = "~/.cache/ruff"
 From the project root:
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 streamlit run components/<component_name>/app.py
 ```
 

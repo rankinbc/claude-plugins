@@ -27,6 +27,7 @@ The PRP's output location is stated in the PRP itself. Respect it.
 ### 1. Load PRP
 
 - Read the specified PRP file completely
+- **Read `components/<name>/CLAUDE.md` for every component the PRP builds or touches.** Those files carry the pattern gotchas that shape the implementation. Claude Code loads them automatically once you open a file in the folder, but planning happens first — read them now, before step 2.
 - Understand all context, requirements, and validation gates
 - Extend research if you hit gaps — don't guess when you can verify
 - Use sub-agents for any exploration that would generate noise
@@ -50,6 +51,8 @@ Before writing any code:
 - Run every validation gate in the PRP
 - Fix failures, re-run until all pass
 - Don't mock failing tests into passing. Fix the underlying issue.
+- If a gate fails because a secret is unset, don't try to read or write `.env` — it's deny-listed. Run `pwsh -File scripts/secure/Test-Readiness.ps1` to see which keys are missing by name, then tell the user to run `.\scripts\secure\Set-ProjectSecrets.ps1` in their own terminal and pause until they confirm.
+- Any new dependency goes in the root `pyproject.toml`, never a new component-local manifest.
 
 ### 5. Complete
 

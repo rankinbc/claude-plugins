@@ -2,7 +2,7 @@
 
 Users enter data via a form. Data is stored. A summary view shows aggregate state.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, project-level requirements.txt) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -13,7 +13,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── app.py                    # FastAPI entry point
 ├── models.py                 # SQLAlchemy models
 ├── database.py               # DB setup + session
@@ -108,7 +109,7 @@ def get_db():
 From the project root:
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 uvicorn components.<component_name>.app:app --reload
 # Open http://localhost:8000
 ```

@@ -42,10 +42,10 @@ If `/new-project` classifies a component and nothing fits cleanly:
 
 Patterns are consumed by `ce-scaffold` (per-component scaffolding) and read by `/new-project` (for project `CLAUDE.md` gotchas + validation aggregation). Each pattern section has a defined **consumer** — where the content ends up or who reads it. Keep these section headers so parsing works.
 
-### Sections that feed the project `CLAUDE.md` (Claude-facing rules, aggregated)
+### Sections that feed a `CLAUDE.md` (Claude-facing rules)
 
-- `## Gotchas for CLAUDE.md` — bullets ce-scaffold returns in its report; the main session writes them into the project root `CLAUDE.md` under that component's section
-- `## Validation` — commands ce-scaffold returns; the main session aggregates them into the project root `CLAUDE.md` validation gates block
+- `## Gotchas for CLAUDE.md` — ce-scaffold writes these bullets directly into `components/<name>/CLAUDE.md`. They are **not** returned to the main session and never appear in the project root `CLAUDE.md`. Claude Code loads subdirectory `CLAUDE.md` files on demand, so a five-component project pays for one component's gotchas only when it works on that component.
+- `## Validation` — commands ce-scaffold returns in its report; the main session aggregates them into the project root `CLAUDE.md` validation gates block. These stay at the root because `/execute-prp` needs the full list in one place, and keeping a single copy stops root and component drifting apart.
 
 Anything Claude should *follow* when editing the component lives in these two sections only.
 
@@ -67,4 +67,12 @@ Anything Claude should *follow* when editing the component lives in these two se
 - `## INITIAL.md pre-fill hints` — read by `/new-project` to populate the project root `INITIAL.md`
 - `## Interview follow-ups` — shape-specific questions for `/new-project`'s scoping conversation
 
-**The rule**: README is for orientation (what this is, how to run it, how it's organized — human-facing). Gotchas and validation commands live in the project root `CLAUDE.md`'s per-component section — not the component README. A pattern section contributes to exactly one consumer.
+### Project-root concerns a pattern must NOT scaffold into the component
+
+Three things consolidated to the project root. A pattern's `## Folder structure to scaffold` must not list any of them inside the component:
+
+- **Dependencies** — no component-local `requirements.txt` / `pyproject.toml` / `package.json`. List the libs in `## Default stack`; ce-scaffold reports them and the main session writes one root manifest. One project, one environment, one install.
+- **Secrets** — no component-local `.env.example`. Name the keys in `## Gotchas for CLAUDE.md`; ce-scaffold reports the names and the main session writes one root `.env.example`. Starter code loads `PROJECT_ROOT / ".env"`, never `COMPONENT_DIR / ".env"`.
+- **Logs** — a component that logs writes to `../../output/<component>/<date>_<run>/run.log`, alongside that run's other artifacts.
+
+**The rule**: README is for orientation (what this is, how to run it, how it's organized — human-facing). Gotchas live in `components/<name>/CLAUDE.md`; validation commands live in the project root `CLAUDE.md`'s gates block. A pattern section contributes to exactly one consumer.

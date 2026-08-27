@@ -2,7 +2,7 @@
 
 Pure knowledge work. Gather information, synthesize, produce a written deliverable. Minimal code.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, .gitignore, shared data/ and output/) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, .gitignore, shared data/ and output/, and the single `pyproject.toml`) lives at the project root.
 
 ## Default stack
 
@@ -13,7 +13,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── sources/                  # Raw notes from sources (one file per source or topic)
 │   └── .gitkeep
 └── scrape.py                 # OPTIONAL: programmatic source collection (only if needed)

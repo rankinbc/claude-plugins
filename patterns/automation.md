@@ -2,7 +2,7 @@
 
 Runs on a trigger (schedule, event, webhook), does work, notifies. No UI beyond logs and alerts.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, project-level requirements.txt) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -15,16 +15,18 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md              # Purpose / inputs / outputs / how to run
+├── README.md              # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md              # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── main.py                # Entry point; accepts --dry-run
 ├── config.yaml            # Non-secret config (rules, thresholds, channels)
-├── .env.example           # Secret template (component-specific)
 └── crontab.example        # Example cron line
 ```
 
+Secrets come from the **project-root** `.env` — this component has none of its own. Name the keys it needs in `## Gotchas for CLAUDE.md`; ce-scaffold reports them and the main session writes the root `.env.example`.
+
 Processed-record state and logs live under `output/<component_name>/` at the project root:
-- `output/<component_name>/state/processed.json` — durable idempotency state (kept across runs)
-- `output/<component_name>/logs/<YYYY-MM-DD>_run.log` — per-run logs
+- `output/<component_name>/state/processed.json` — durable idempotency state (kept across runs, not per-run)
+- `output/<component_name>/<YYYY-MM-DD>_run/run.log` — that run's log, alongside anything else the run produced
 
 External inputs (if the automation consumes files rather than APIs) live in `data/<source_name>/` at the project root.
 
@@ -47,20 +49,21 @@ COMPONENT_DIR = Path(__file__).parent
 PROJECT_ROOT = COMPONENT_DIR.parent.parent
 COMPONENT_NAME = COMPONENT_DIR.name
 
-load_dotenv(COMPONENT_DIR / ".env")
+load_dotenv(PROJECT_ROOT / ".env")   # one .env for the whole project
 
 OUTPUT_DIR = PROJECT_ROOT / "output" / COMPONENT_NAME
-LOG_DIR = OUTPUT_DIR / "logs"
 STATE_FILE = OUTPUT_DIR / "state" / "processed.json"
-LOG_DIR.mkdir(parents=True, exist_ok=True)
 STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+RUN_DIR = OUTPUT_DIR / f"{today}_run"    # this run's artifacts, log included
+RUN_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / f"run-{today}.log"),
+        logging.FileHandler(RUN_DIR / "run.log"),
         logging.StreamHandler(),
     ],
 )
@@ -120,14 +123,14 @@ if __name__ == "__main__":
 **`crontab.example`**:
 ```
 # Every day at 6 AM UTC
-0 6 * * * cd /path/to/project && /path/to/venv/bin/python components/<component_name>/main.py >> output/<component_name>/logs/cron.log 2>&1
+0 6 * * * cd /path/to/project && /path/to/venv/bin/python components/<component_name>/main.py >> output/<component_name>/cron.log 2>&1
 ```
 
-**`.env.example`**:
+**Secret keys this component declares** — reported to the main session, which writes them into the project-root `.env.example`. Never write a component-local `.env.example`:
 ```
-SLACK_WEBHOOK_URL=
-API_KEY=
-DATABASE_URL=
+SLACK_WEBHOOK_URL    # Slack app > Incoming Webhooks
+API_KEY              # the upstream service this automation talks to
+DATABASE_URL         # only if the automation persists to a DB
 ```
 
 ## How to run
@@ -135,9 +138,8 @@ DATABASE_URL=
 From the project root:
 
 ```bash
-pip install -r requirements.txt
-cp components/<component_name>/.env.example components/<component_name>/.env
-# Fill in secrets
+pip install -e .
+.\scripts\secure\Set-ProjectSecrets.ps1                # fills the project-root .env; run it yourself, not through Claude
 python components/<component_name>/main.py --dry-run   # Preview what would happen
 python components/<component_name>/main.py             # Actual run
 ```
@@ -146,8 +148,9 @@ python components/<component_name>/main.py             # Actual run
 
 - **Idempotency is non-negotiable**: if the script runs twice (retry, manual re-run), it must NOT cause duplicates. Track processed IDs in state/processed.json or equivalent.
 - **Dry-run mode always**: `--dry-run` must fetch + classify + print what would happen, without taking real action. Essential for testing changes safely.
-- **Secrets only in .env, never code, never config.yaml**.
-- **Log files rotate**: keep 30 days, auto-delete older (or log to stdout and let the OS handle it).
+- **Secrets only in the project-root `.env`**, loaded via `load_dotenv(PROJECT_ROOT / ".env")`. Never in code, never in `config.yaml`, never a component-local `.env`. `config.yaml` holds non-secret knobs only.
+- **Logs are run artifacts**: each run writes `output/<component_name>/<YYYY-MM-DD>_run/run.log` alongside that run's other output. Never a top-level `logs/` folder. Durable state (`state/processed.json`) is the one thing that lives outside a dated run folder.
+- **Log files rotate**: keep the latest ~5 run folders directly under `output/<component_name>/`, move older ones to `_archive/`.
 - **Timezone = UTC** in logs and schedule. Any user-facing timestamp can be converted; internal state stays UTC.
 - **Failures are non-fatal per item**: one bad record shouldn't crash the whole run. Log the exception, continue to the next.
 - **Alerting on failure**: if the entire run fails (not per-item), send an alert to a different channel so it doesn't get lost in routine logs.

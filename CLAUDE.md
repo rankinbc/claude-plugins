@@ -78,8 +78,10 @@ Inside the new project, the user runs `/execute-prp PRPs/v1_<slug>.md`. Claude w
 │   ├── INITIAL.md            # Per-feature intake template
 │   ├── .gitignore            # Multi-language defaults
 │   ├── .claude/
-│   │   ├── settings.local.json
+│   │   ├── settings.local.json   # Permissions — allow list + deny rules blocking .env reads
 │   │   └── commands/         # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
+│   ├── scripts/secure/       # Set-ProjectSecrets.ps1, Test-Readiness.ps1 (copied only when a project declares secrets)
+│   ├── tests/                # test_repo_hygiene.py — enforces the 500-line rule in scaffolded projects
 │   └── PRPs/                 # Base PRP template + canonical guide
 └── patterns/                 # Pattern shapes (dashboard, tracker, api, analysis, etc.)
 ```
@@ -100,7 +102,7 @@ Only relevant when the user is editing the scaffolder itself, not creating a new
 
 ### Context discipline (kit work)
 
-- `new-project.md` is ~800 lines — scout with grep before reading in full.
+- `new-project.md` is ~850 lines — scout with grep before reading in full.
 - For multi-file consistency checks across `patterns/` or `agents/`, dispatch `Explore` or `general-purpose` sub-agents instead of opening many files in the main session.
 - Propose `/handoff` if a kit-dev session runs long.
 

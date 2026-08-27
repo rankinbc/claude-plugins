@@ -2,7 +2,7 @@
 
 Examine a dataset, extract insights, produce a report with charts.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, project-level requirements.txt/pyproject.toml) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root.
 
 ## Default stack
 
@@ -14,7 +14,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 └── analysis.py               # Or notebook.ipynb if user prefers notebooks
 ```
 
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     main()
 ```
 
-**Project-level `requirements.txt`** (at project root, shared across Python components):
+**Project-level dependencies** — these go in the root `pyproject.toml` under `[project] dependencies`, never a component-local manifest:
 ```
 pandas>=2.0
 matplotlib>=3.8
@@ -81,7 +82,7 @@ matplotlib>=3.8
 From the project root:
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 # Drop data file in data/<source_name>/
 python components/<component_name>/analysis.py
 # Report and charts appear in output/<component_name>/<date>_run/

@@ -2,7 +2,7 @@
 
 Simple list/status of items. Markdown files as source of truth; optional dashboard.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, .gitignore, shared data/ and output/) lives at the project root.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, .gitignore, shared data/ and output/, and the single `pyproject.toml`) lives at the project root.
 
 ## Default stack
 
@@ -14,7 +14,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── items/                    # The tracked entities themselves — one markdown per item
 │   └── .gitkeep
 ├── summary.py                # Reads markdown files → writes SUMMARY.md to output/

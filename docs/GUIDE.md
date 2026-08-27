@@ -133,6 +133,8 @@ Claude reads the plan, fills in component stubs with real code, runs validation 
 
 If you picked auto-chain at handoff, `/execute-prp` is already running when Claude Code opens. Just let it work.
 
+**Worth doing once, after the build succeeds:** run `/run-skill-generator`. It gets your app running from a clean environment, captures what actually worked — install commands, env vars, the launch step — and commits it as a per-project skill under `.claude/skills/run-<name>/`. From then on `/run` and any agent in the repo follow that recipe instead of rediscovering it each session, and it only loads into context when something needs it. Most useful when starting a component takes more than the one command in your `CLAUDE.md` Components table — migrations, seeding, a service that has to be up first. Re-run it if the build or launch process changes.
+
 ### Adding a feature after v1 is built — `/generate-prp` → `/execute-prp`
 
 Once v1 is built, new features use the standard PRP flow:
@@ -177,23 +179,33 @@ After the scaffold (pre-build, `.scaffolding/` still present):
 
 ```
 <project>/
-├── CLAUDE.md              # Rules Claude follows — structure, gotchas, validation
+├── CLAUDE.md              # Rules Claude follows — structure, component index, validation
 ├── README.md              # What this project is, how to use it (includes a status banner)
+├── pyproject.toml         # One dependency list + test config for every component
+├── .env.example           # Secret key names — only if the project needs secrets
 ├── .scaffolding/          # Transient scaffolder state — auto-deleted by /execute-prp on build
 │   ├── manifest.json      # Lifecycle tracker (stage: "plan" → "built") + component map
-│   └── README.md          # First-run orientation + optional setup checklist
-├── components/            # One subfolder per component, each with its own README and code stubs
+│   └── README.md          # First-run orientation + setup checklist
+├── components/            # One subfolder per component, each with README.md + CLAUDE.md + code stubs
 ├── data/                  # Input data, organized by source
-├── output/                # Where each component writes its results
+├── output/                # Where each component writes its results (logs included)
+├── tests/                 # Project-wide tests, incl. a structural hygiene check
+├── scripts/secure/        # Set-ProjectSecrets.ps1 + Test-Readiness.ps1 — only if the project needs secrets
 ├── PRPs/
 │   ├── v1_<slug>.md       # Your v1 implementation plan — run /execute-prp on this
 │   ├── source/INITIAL.md  # Blank per-feature template (for post-build feature work)
 │   ├── templates/         # PRP template
 │   └── archive/           # Completed PRPs land here
 └── .claude/
-    ├── settings.local.json
-    └── commands/          # /generate-prp, /execute-prp, /handoff
+    ├── settings.local.json   # Permissions, incl. deny rules that block Claude from your .env
+    └── commands/          # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
 ```
+
+Two things worth knowing about this layout:
+
+**Each component carries its own `CLAUDE.md`.** Claude Code loads those on demand — only when Claude actually works in that folder. The root `CLAUDE.md` keeps a one-row-per-component index, so it stays about the same size whether the project has two components or six.
+
+**Secrets live in one place and Claude can't read them.** All secrets go in a single gitignored `.env` at the project root. `.claude/settings.local.json` denies Claude both the file read and the obvious shell workarounds (`cat`, `type`, `Get-Content`, `printenv`) — a permission rule, not a promise. To fill it in, run `.\scripts\secure\Set-ProjectSecrets.ps1` **in your own terminal**; it prompts for each key with the input hidden. Claude Code runs commands with stdin closed, so it can't drive that script even if asked. Claude can run `Test-Readiness.ps1`, which reports which keys are set — by name, never by value.
 
 After a successful `/execute-prp PRPs/v1_<slug>.md`:
 

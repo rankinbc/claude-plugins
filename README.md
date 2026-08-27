@@ -1,5 +1,7 @@
 # claude-project-scaffold
 
+**Version 2.0** — scaffolds `scaffold_version: 2` projects. See [What's new in 2.0](#whats-new-in-20).
+
 A scaffolder for new Claude Code projects. Instead of opening Claude Code in an empty folder and hoping it figures out a sensible structure, you run `/new-project`, answer a few questions, and end up with a fully researched, organized, plan-driven project ready to build.
 
 For the actual how-to-run-it, see [QUICK-START.md](QUICK-START.md). This doc is about *what it does* and *why you'd use it*.
@@ -48,7 +50,12 @@ This kit front-loads the structure that prevents all of that *before any code is
 
 ### In every scaffolded project
 
-- **A `CLAUDE.md` with enforcement rules** — context discipline (scout before reading large files, dispatch sub-agents, externalize plans), code conventions (file size limits, organize by feature), testing defaults, doc upkeep, project cleanliness (output rotation, descriptive names, no rogue top-level folders), PRP workflow defaults.
+- **A root `CLAUDE.md` with enforcement rules** — context discipline (scout before reading large files, sample data instead of slurping it, dispatch sub-agents, externalize plans), code conventions (file size limits, organize by feature), testing defaults, doc upkeep, project cleanliness (output rotation, descriptive names, no rogue top-level folders), PRP workflow defaults. It holds a one-row-per-component index, so it stays about the same size whether you have two components or six.
+- **A `CLAUDE.md` inside each component** — that component's pattern gotchas and I/O paths. Claude Code loads these on demand, only when it actually works in that folder, so they cost nothing the rest of the time.
+- **Secrets Claude can't read** — one gitignored `.env` at the project root, with `permissions.deny` blocking both the file read and the shell workarounds (`cat`, `type`, `Get-Content`, `printenv`). `scripts/secure/Set-ProjectSecrets.ps1` prompts you for each key with the input hidden; `Test-Readiness.ps1` tells Claude which keys are set, by name only.
+- **One dependency manifest, one environment** — every component's deps in the root `pyproject.toml`, installed once. No per-component `requirements.txt` to drift.
+- **Validation gates tuned for long sessions** — pytest and ruff configured for compact output, because `/execute-prp` runs them repeatedly against failing code and every extra line costs context.
+- **A structural hygiene test** — `tests/test_repo_hygiene.py` enforces the 500-line file limit and the no-artifacts-at-root rule that `CLAUDE.md` declares, so those rules can't quietly decay.
 - **`/execute-prp`** — runs any PRP with validation gates at each checkpoint, atomic commits, and PRP archival on success.
 - **`/new-feature`** — guided interview for post-build feature work; mirrors `/new-project` but scoped to one feature, then chains into `/generate-prp` → `/execute-prp`.
 - **`/generate-prp`** — researches and writes a PRP from `PRPs/source/INITIAL.md` for any new feature.
@@ -57,6 +64,20 @@ This kit front-loads the structure that prevents all of that *before any code is
 - **PRP lifecycle baked in** — active plans in `PRPs/`, completed ones archived to `PRPs/archive/<date>_<slug>.md` automatically.
 - **Per-feature intake template** — `PRPs/source/INITIAL.md` for spec'ing the next feature.
 - **Language-agnostic defaults** — Python, Node, Go, Rust, .NET, Ruby, etc. work out of the box. Stack-specific rules append cleanly to `CLAUDE.md`.
+
+---
+
+## What's new in 2.0
+
+Version 2 changes the shape of what gets scaffolded. The three-step flow you run is identical — `/new-project`, `cd` into the project, `/execute-prp` — but the project it produces is different enough that the manifest records it as `scaffold_version: 2`.
+
+- **Per-component `CLAUDE.md` files.** Component gotchas moved out of the root `CLAUDE.md` and into `components/<name>/CLAUDE.md`, which Claude Code loads only when working in that folder. Previously the root file grew with every component and every session paid for all of them.
+- **Secrets consolidated and locked.** One `.env` at the project root instead of one per component, so a key shared by three components is entered once. `permissions.deny` blocks Claude from reading it — a client-enforced rule, not a convention — and a PowerShell script populates it without any value passing through a conversation.
+- **One environment, one install.** Dependencies moved from per-component manifests to a single root `pyproject.toml`. First-run setup is one install command instead of one per component.
+- **Cheaper validation loops.** pytest and ruff ship configured for compact output. Measured on a small failing test suite: 39% less pytest output and 61% less ruff output, with nothing actionable lost.
+- **Rules that enforce themselves.** A hygiene test now checks the file-size and artifact-placement rules that `CLAUDE.md` previously only stated.
+
+Projects scaffolded with version 1 keep working — each one carries its own copy of the slash commands from the day it was created. There's no migration step, and none is needed.
 
 ---
 

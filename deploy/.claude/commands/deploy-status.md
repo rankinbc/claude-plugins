@@ -27,6 +27,21 @@ Identifying the "primary source file" per component: use the pattern-specific en
 
 Look in `PRPs/` (not `PRPs/archive/`, not `PRPs/templates/`, not `PRPs/source/`, not `PRPs/README.md`) for any `*.md` files OTHER than `PRPs/v1_<slug>.md`. These are **active post-build feature PRPs** — either awaiting `/execute-prp` or interrupted mid-execution. List them as "pending / in-progress features."
 
+### 3.5 Check configuration state
+
+Only when `.env.example` exists at the project root. If it doesn't, this project declares no secrets — skip this step and omit the Configuration section from the report entirely.
+
+Run the readiness script and use its output verbatim:
+
+```bash
+pwsh -File scripts/secure/Test-Readiness.ps1
+```
+
+It prints one line per declared key — `set`, `empty`, or `missing` — and **never prints a value**. Exit code 0 means everything is configured; 1 means something is unset.
+
+- If the script can't run (no `pwsh` on PATH, script missing), report configuration state as **unknown** and tell the user to run it themselves. Do not fall back to reading `.env` — it's deny-listed, and that's deliberate.
+- Never read `.env`, and never quote a value out of `.env.example`. Key names only.
+
 ### 4a. Render the pre-built / partial-build report
 
 If the manifest is present. Use exactly this shape and ordering:
@@ -42,6 +57,12 @@ If the manifest is present. Use exactly this shape and ordering:
 |---|---|---|---|
 | {name} | {pattern} | {✅ DONE \| 🟡 IN PROGRESS \| ⬜ INCOMPLETE} | `{entry_command}` |
 | ... | ... | ... | ... |
+
+{If `.env.example` exists, add:}
+
+### Configuration
+
+{n}/{total} secrets set. {If any are unset, list the missing key NAMES and add: "Run `.\scripts\secure\Set-ProjectSecrets.ps1` in your own terminal — not through Claude — to fill them in."}
 
 {If active post-build PRPs exist, add an "Active feature PRPs" section with a bulleted list of file paths.}
 
@@ -66,7 +87,13 @@ If the manifest is absent. The project is built.
 
 ### How to run
 
-{List of entry commands from CLAUDE.md's "## Components" section — one per component}
+{Entry commands from the "How to run" column of CLAUDE.md's "## Components" index table — one per component}
+
+{If `.env.example` exists, add:}
+
+### Configuration
+
+{n}/{total} secrets set. {If any are unset, list the missing key NAMES and add: "Run `.\scripts\secure\Set-ProjectSecrets.ps1` in your own terminal — not through Claude. Components that need those keys will fail until it's done."}
 
 {If active post-build feature PRPs exist, add an "Active feature PRPs" section:}
 
@@ -99,4 +126,6 @@ If the manifest is absent. The project is built.
 - Do NOT write to `.scaffolding/manifest.json` — this command is read-only.
 - Do NOT re-run `/execute-prp` on your own — just report what the user should do next.
 - Do NOT deep-read component source files — peek at the first 30 lines is enough for stub detection.
+- Do NOT read `.env`, or work around the deny rules to inspect it. `Test-Readiness.ps1` is the only sanctioned way to learn configuration state, and it reports names only.
+- Do NOT run `Set-ProjectSecrets.ps1` — it's interactive, and Claude Code's stdin is the null device, so it would write empty values.
 - Do NOT speculate about feature completeness beyond what the manifest + PRP-archive state tell you.

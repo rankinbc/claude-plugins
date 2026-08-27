@@ -47,11 +47,12 @@ Scale research effort to match. Don't over-research simple things.
 
 Since `/generate-prp` is post-build for option-B projects, there IS a real codebase to analyze:
 
+- **Read `components/<name>/CLAUDE.md` for every component this feature touches.** Do this explicitly — those files hold the component's pattern gotchas, and Claude Code only auto-loads them once you read a file inside that folder. During planning you may reason about a component without opening its code, which would skip its rules entirely.
 - Search for similar features/patterns already in the project (`components/`, `src/<package>/`, and `PRPs/archive/` — archived PRPs show what patterns worked before)
 - Identify files worth referencing in the PRP
 - Note existing conventions (naming, structure, testing style)
 - Check test patterns so validation gates match what already works
-- For multi-component additions: note any shared infrastructure (common `requirements.txt`, shared utilities) that should stay consistent with what's already built
+- For multi-component additions: note shared infrastructure that must stay consistent — the root `pyproject.toml` is the only dependency manifest (never add a component-local one), and the root `.env` is the only secrets file. New secrets mean adding key names to `.env.example` and telling the user to run `scripts/secure/Set-ProjectSecrets.ps1`; you cannot read or write `.env` yourself.
 
 ### 2. External Research — depth scales with task type
 

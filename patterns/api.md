@@ -2,7 +2,7 @@
 
 CRUD API with users, auth, persistence, tests. Real software.
 
-This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/) lives at the project root. The API is often the main component of its project; shared `pyproject.toml`/`requirements.txt` may live at the project root if other components share the Python env.
+This describes **one component** inside a scaffolded project — `components/<component_name>/`. Project-level infrastructure (CLAUDE.md, INITIAL.md, PRPs/, .claude/, shared data/ and output/, the single `pyproject.toml`, and the single `.env`) lives at the project root. Even when the API is the only component, its dependencies and secrets belong to the project root, not the component folder.
 
 ## Default stack
 
@@ -15,7 +15,8 @@ This describes **one component** inside a scaffolded project — `components/<co
 
 ```
 components/<component_name>/
-├── README.md                 # Purpose / inputs / outputs / how to run
+├── README.md                 # Purpose / inputs / outputs / how to run (ce-scaffold writes it)
+├── CLAUDE.md                 # Pattern gotchas, lazy-loaded (ce-scaffold writes it)
 ├── app/
 │   ├── __init__.py
 │   ├── main.py               # FastAPI instance + router includes
@@ -34,11 +35,10 @@ components/<component_name>/
 │   ├── conftest.py
 │   ├── test_auth.py
 │   └── test_*.py
-├── alembic.ini
-└── .env.example              # Secrets template (component-specific)
+└── alembic.ini
 ```
 
-For dev, the SQLite DB file lives under `data/<component_name>/` at the project root. Prod uses PostgreSQL configured via `DATABASE_URL` in `.env`. Exported data (CSV dumps, backup snapshots) lands in `output/<component_name>/<YYYY-MM-DD>_<run>/`.
+For dev, the SQLite DB file lives under `data/<component_name>/` at the project root. Prod uses PostgreSQL configured via `DATABASE_URL` in the **project-root** `.env` — there is no component-local `.env`, and `app/config.py` loads `PROJECT_ROOT / ".env"`. Exported data (CSV dumps, backup snapshots) lands in `output/<component_name>/<YYYY-MM-DD>_<run>/`.
 
 ## Starter code
 
@@ -107,6 +107,7 @@ def client(test_db):
 - **Testing matrix**: every endpoint gets (1) success, (2) unauthorized (no token), (3) forbidden (other user's resource).
 - **Pydantic v2**: use v2 idioms (`model_config`, not `Config` class). Upstream moved.
 - **SQLAlchemy 2.0**: use new-style `select()` + `session.execute()`, not legacy `session.query()`.
+- **Secrets** (`DATABASE_URL`, `JWT_SECRET_KEY`) come from the project-root `.env` only — `app/config.py` points pydantic-settings at `PROJECT_ROOT / ".env"`. Never a component-local `.env`, never a default value baked into `config.py`.
 
 ## Validation
 

@@ -49,7 +49,25 @@
       "WebFetch(domain:docs.claude.com)",
       "WebSearch"
     ],
-    "deny": []
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/secrets.json)",
+      "Read(**/appsettings.Local.json)",
+      "Read(**/appsettings.local.json)",
+      "Read(**/local.settings.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.pfx)",
+      "Bash(cat .env*)",
+      "Bash(type .env*)",
+      "Bash(Get-Content .env*)",
+      "Bash(printenv*)",
+      "Read(**/*.parquet)",
+      "Read(**/*.xlsx)",
+      "Read(**/*.db)",
+      "Read(**/*.sqlite)"
+    ]
   },
   "hooks": {
     "SessionStart": [

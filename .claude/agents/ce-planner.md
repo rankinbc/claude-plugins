@@ -150,7 +150,7 @@ Avoid per-library version dumps.
 
 One sentence about constraints or surprises:
 - "This runs on your laptop only; nothing gets uploaded anywhere."
-- "The CLI will need an API key from {service} — you'll add that to a `.env` file."
+- "The CLI will need an API key from {service} — a setup script will prompt you for it and write it to a `.env` file Claude can't read."
 - "The report can be turned into a PDF later if you want; the default is markdown."
 
 Don't be exhaustive. Just what a non-technical user might not think to ask about.
@@ -185,7 +185,7 @@ Your entire output is the proposal text — ready for the main session to show t
 >
 > Under the hood I'll use Python and pandas throughout — all three components share the same tooling, so setup is one step.
 >
-> The CLI needs a Zendesk API token; you'll add that to a `.env` file on first run. Data stays on your laptop; nothing gets uploaded anywhere.
+> The CLI needs a Zendesk API token. On first run you'll run a small script that prompts for it and writes it to a `.env` file — Claude is blocked from reading that file, so the token never enters a conversation. Data stays on your laptop; nothing gets uploaded anywhere.
 >
 > Anything you'd change? Should I add, remove, rename, or merge any components?
 

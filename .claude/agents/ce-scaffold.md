@@ -32,10 +32,10 @@ Start by reading the pattern file. Sections split by consumer (see `patterns/REA
 - **`## Default stack`** — feeds the component README "Stack" line. Confirm it matches the project stack, or adapt.
 - **`## Folder structure to scaffold`** — the subfolders the pattern recommends inside the component. Summarized in the README "Structure" section.
 - **`## Starter code`** / **`## Starter files`** — this section is **reference material for `/execute-prp`**, not what you ship. Use it only to identify *which files* the pattern expects (by filename) and what stack they use. Do not copy the pattern's actual code into the component — see step 4 for what to write instead.
-- **`## Gotchas for CLAUDE.md`** — you return these in your report; the main session aggregates them into the project root `CLAUDE.md`'s per-component section.
+- **`## Gotchas for CLAUDE.md`** — you write these into `components/<name>/CLAUDE.md` (step 6). They do NOT go back to the main session.
 - **`## Validation`** — you return these in your report; the main session aggregates them into the project root `CLAUDE.md`'s validation gates.
 
-You emit ONE orientation doc per component: `components/<name>/README.md`. Gotchas and validation commands go back to the main session via your return report — they are NOT written into the component folder.
+You emit TWO docs per component: `components/<name>/README.md` (human-facing orientation) and `components/<name>/CLAUDE.md` (Claude-facing rules). Validation commands go back to the main session via your return report — they are NOT written into the component folder.
 
 ### 2. Create the component folder
 
@@ -70,14 +70,19 @@ The pattern's `## Starter code` / `## Starter files` section is a reference idio
 
 **Files you still write verbatim (when the pattern calls for them):**
 
-- `requirements.txt` / `package.json` / `pyproject.toml` — these control dependency resolution and cache hygiene; `/execute-prp` needs them present to run. Include the libs the pattern's `## Default stack` lists.
-- `.env.example` — with placeholder keys matching whatever the pattern gotchas reference (e.g., `ZENDESK_API_TOKEN=`). No real values.
 - `Dockerfile`, `alembic/` skeletons — if the pattern declares them in `## Folder structure`, create empty-ish versions.
 - `tests/` — create the folder + an empty `__init__.py`; do NOT write test stubs. `/execute-prp` writes tests alongside the implementation it generates.
+
+**Files you must NOT write (the main session owns these at the project root):**
+
+- **No `requirements.txt` / `pyproject.toml` / `package.json` inside the component.** Dependencies go in the project-root manifest so the project has one environment and one install step. Report the libs the pattern's `## Default stack` lists in your return report's `## Dependencies` section; the main session aggregates them.
+- **No `.env.example` inside the component.** Secrets live in a single project-root `.env`. Report the key names your pattern's gotchas reference in your return report's `## Secret keys` section; the main session writes the project-root `.env.example`.
 
 **Path adjustments still apply** for any path reference in your stubs:
 - Input paths → `../../data/<source_name>/`
 - Output paths → `../../output/<component_name>/<YYYY-MM-DD>_<run_description>/`
+- Secrets → `load_dotenv(PROJECT_ROOT / ".env")` (one `.env` at the project root, never a component-local one)
+- Log paths → `../../output/<component_name>/<YYYY-MM-DD>_<run_description>/run.log`
 - No hardcoded project names; use the component name or a placeholder.
 
 **Guiding principle:** after scaffolding, every component should **run** (print its name, serve a trivial page, render an empty template) so the user sees the project is alive — but it should be *visibly trivial*, with clear TODO markers. If your stub has more than ~10-15 lines of logic, you're shipping real code — stop and cut it down.
@@ -112,9 +117,37 @@ Every component gets a `components/<component_name>/README.md` with this exact s
 **To extend this component**: edit `PRPs/source/INITIAL.md` and run `/generate-prp`. Don't modify files here directly for new work — let the PRP drive it.
 ```
 
-Keep it under 35 lines. This is the per-component orientation a human or Claude reads before touching the component. Gotchas and validation commands do NOT go here — they go in your return report so the main session can aggregate them into the project root `CLAUDE.md`. The "To extend this component" footer is required and must appear verbatim — it reinforces the PRP-first rule that's declared globally in the project's `CLAUDE.md`.
+Keep it under 35 lines. This is the per-component orientation a **human** reads before touching the component. Gotchas go in `CLAUDE.md` (next section), validation commands go in your return report. The "To extend this component" footer is required and must appear verbatim — it reinforces the PRP-first rule that's declared globally in the project's `CLAUDE.md`.
 
-### 6. Don't create files outside the component folder
+### 6. Write the component CLAUDE.md
+
+Every component gets a `components/<component_name>/CLAUDE.md`. This is the **Claude-facing** counterpart to the README — the rules Claude must follow when editing this component.
+
+Claude Code loads `CLAUDE.md` files in subdirectories **on demand**, when Claude reads a file in that directory. That's the whole point: a five-component project doesn't pay for five sets of gotchas in every session. Keep this file under ~25 lines.
+
+```markdown
+# components/<component_name> — component rules
+
+**Pattern**: `<pattern_file>` · **Stack**: <from pattern `## Default stack`>
+
+## Gotchas
+
+<every bullet from the pattern's `## Gotchas for CLAUDE.md` section, verbatim>
+
+## I/O
+
+- Reads: `../../data/<source_name>/` — <or "None (self-contained)">
+- Writes: `../../output/<component_name>/<YYYY-MM-DD>_<description>/` — <or "None">
+- Secrets: reads `<KEY_NAME>` from the project-root `.env` — <omit this line if the component needs no secrets>
+```
+
+Rules:
+
+- **Gotchas live here and nowhere else.** Don't put them in the README, and don't return them for the main session to aggregate — that step no longer exists.
+- **Don't include validation commands.** Those go in your return report only; the main session keeps the aggregate at the project root so the two can't drift.
+- **Name secret keys, never values.** You never see a value; you only know which keys this component consumes.
+
+### 7. Don't create files outside the component folder
 
 You write ONLY inside `<project_root>/components/<component_name>/`. The main session owns everything else. If you think a shared dependency needs a top-level change, flag it in your return report — don't edit outside your lane.
 
@@ -129,6 +162,7 @@ Structured, short. The main session collates reports from all ce-scaffold invoca
 
 ## Files created
 - components/<component_name>/README.md
+- components/<component_name>/CLAUDE.md
 - components/<component_name>/<file_1>
 - components/<component_name>/<file_2>
 - ...
@@ -137,10 +171,14 @@ Structured, short. The main session collates reports from all ce-scaffold invoca
 - Reads from: <declared input path(s)>
 - Writes to: <declared output path>
 
-## Gotchas to surface in project CLAUDE.md
-- <gotcha 1 from pattern file, with 1-line description>
-- <gotcha 2>
-(3-5 items — the main session aggregates these into the project root CLAUDE.md's per-component section)
+## Dependencies
+- <library>  # <one-line reason, e.g. "Streamlit UI">
+- <library>
+(From the pattern's `## Default stack`. The main session aggregates these into the project-root manifest. Empty list `[]` for pure-markdown patterns.)
+
+## Secret keys
+- <KEY_NAME>  # <where the developer gets it, one line>
+(Key NAMES only — you never see values. The main session writes the project-root `.env.example` from the union across components. Empty list `[]` when the component needs no secrets.)
 
 ## Validation commands for this component
 ```bash
@@ -148,31 +186,35 @@ Structured, short. The main session collates reports from all ce-scaffold invoca
 ```
 
 ## First-run setup
-- <shell command the user should run once before this component will run — e.g., `pip install -r components/<name>/requirements.txt`>
+- <component-specific one-off the user must run before this component works — e.g., `playwright install chromium`>
 - <another command if applicable>
-(Empty list `[]` is fine if the pattern has no dependencies or secrets. The main session aggregates these across components into `_first_run/README.md`'s "Optional setup" checklist.)
+(Empty list `[]` is the normal case — see the heuristics below. The main session aggregates any lines across components into `.scaffolding/README.md`'s "Optional setup" checklist.)
 
 ## Flags for main session
-<anything unusual — e.g., "this component needs a shared requirements.txt entry for `httpx`", or "pattern assumed a DB but user said no DB, scaffolded file-based instead">
+<anything unusual — e.g., "this component pins `httpx>=0.27`, which may conflict with another component's range", or "pattern assumed a DB but user said no DB, scaffolded file-based instead">
 ```
 
 ### First-run setup heuristics
 
 Populate `## First-run setup` in your return report by inspecting the stub files you just wrote:
 
-- Wrote `components/<name>/requirements.txt` → emit `pip install -r components/<name>/requirements.txt`
-- Wrote `components/<name>/pyproject.toml` (installable package layout) → emit `pip install -e components/<name>`
-- Wrote `components/<name>/package.json` → emit `cd components/<name> && npm install`
-- Wrote `components/<name>/.env.example` → emit `cp components/<name>/.env.example components/<name>/.env  # then fill in secrets`
-- Pattern is `research.md` / `product_doc.md` (pure markdown, no runtime) → return `[]`
+**Most components return `[]` here.** Dependency install and secret entry are project-level now — the main session emits one install command and one `Set-ProjectSecrets.ps1` line for the whole project, so don't emit either from a component. Report your libs under `## Dependencies` and your keys under `## Secret keys` instead.
 
-Don't invent setup steps the pattern didn't actually require. One line per command, ordered: install first, then env copy.
+Only emit a line when the pattern needs a setup step that is genuinely component-specific and isn't covered by installing the project's dependencies — for example:
+
+- Pattern requires a browser runtime → `playwright install chromium`
+- Pattern requires a model or dataset download the package manager can't do
+- Pattern requires a local service (a DB container, a daemon) before the component will run
+
+Don't invent setup steps the pattern didn't actually require.
 
 ## Anti-patterns
 
 - Creating `data/` or `output/` inside the component (those are project-level)
-- Writing the project-level CLAUDE.md (that's the main session's job — you just return the gotchas and validation commands)
-- Putting gotchas or validation commands into the README — they belong in the return report for main-session aggregation
+- Writing the project-**root** CLAUDE.md (that's the main session's job — you write `components/<name>/CLAUDE.md` only)
+- Putting gotchas into the README — they belong in `components/<name>/CLAUDE.md`
+- Putting validation commands into either the README or `components/<name>/CLAUDE.md` — they belong in the return report only, so the root aggregate stays the single source
+- Writing a component-local `requirements.txt`, `pyproject.toml`, `package.json`, or `.env.example` — those are project-root concerns now; report the libs and key names instead
 - Running the stubs — scaffolding only; user runs them
 - Editing files outside `components/<component_name>/`
 - **Copying the pattern's `## Starter code` / `## Starter files` blocks verbatim.** Those are reference idioms for `/execute-prp`, not what you ship. If your stub has more than ~10-15 lines of logic in any entry-point file, you're writing real code — cut it down to imports + trivial demo + TODO.
