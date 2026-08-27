@@ -113,7 +113,7 @@ Opens at `http://localhost:8501`. That's it — no deployment needed.
 ## Validation
 
 ```bash
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 python -c "import streamlit, pandas; print('OK')"
 streamlit run components/<component_name>/app.py --server.headless=true &
 sleep 3 && curl -f http://localhost:8501 >/dev/null && echo "Dashboard loads"

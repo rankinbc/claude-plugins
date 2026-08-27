@@ -35,7 +35,7 @@ Keep long sessions coherent — follow these automatically.
 ### Secrets
 
 - **One gitignored `.env` at the project root** — never in code, `config.yaml`, or a component folder. Load with `load_dotenv(PROJECT_ROOT / ".env")`.
-- **You know key names, never values.** `.env` is deny-listed in `.claude/settings.local.json`; don't work around it. `.env.example` is committed and safe to read.
+- **You know key names, never values.** The Read tool is deny-listed on `.env`, and a `PreToolUse` hook (`.claude/hooks/block_secret_access.py`) blocks any Bash or PowerShell command referencing it — `head`, `grep`, `python -c open(...)` and friends included. Don't spend turns looking for a way around it; there isn't one, and the attempt is logged to the transcript. `.env.example` is committed and safe to read.
 - **The developer fills it in**, via `scripts/secure/Set-ProjectSecrets.ps1` in a real terminal (your stdin is the null device). `Test-Readiness.ps1` reports set/empty/missing by name — that's your only view of config state.
 - **Owner override**: the developer can waive a judgment rule for one action by directing it IN ALL CAPS. Do that action only, never echo or commit the value, don't treat it as sticky. It can't lift a `permissions.deny` — that's client-enforced.
 

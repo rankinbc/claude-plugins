@@ -110,10 +110,10 @@ def upsert_issue(db, issue_data: dict):
 From the project root:
 
 ```bash
-ruff check components/<component_name>/src/
-pytest -q components/<component_name>/tests/
+python -m ruff check components/<component_name>/src/
+python -m pytest -q components/<component_name>/tests/
 # With mocked API responses (use `responses` lib in tests):
-pytest components/<component_name>/tests/test_rate_limit.py
+python -m pytest components/<component_name>/tests/test_rate_limit.py
 ```
 
 ## Project-level footprint

@@ -85,7 +85,8 @@ Then two warnings:
 
 ### 4b. Secrets and dependency consolidation (blocker)
 
-- `.claude/settings.local.json` must have a **non-empty** `permissions.deny` array containing at least `Read(./.env)` and a `cat`/`type`/`Get-Content` Bash rule. An empty deny array means the project ships unprotected.
+- `.claude/settings.local.json` must have a **non-empty** `permissions.deny` array containing at least `Read(./.env)`. An empty deny array means the project ships unprotected.
+- `.claude/hooks/block_secret_access.py` must exist, and `settings.local.json` must reference it from a `PreToolUse` hook. This is the load-bearing half of the secrets guarantee — the deny list only covers the Read tool, while the allow list necessarily permits `head`, `grep`, `python` and other ways to print a file. A missing hook file is a **blocker**: `settings.local.json` would point at nothing, and every Bash call would fail the hook.
 - If `secret_keys` is non-empty: `.env.example` exists at the project root and declares every key in `secret_keys`; `scripts/secure/Set-ProjectSecrets.ps1` and `scripts/secure/Test-Readiness.ps1` both exist.
 - If `secret_keys` is empty: neither `.env.example` nor `scripts/` should exist. Their presence is a warn, not a blocker — harmless, just noise.
 - **`.env` must not exist.** The scaffolder never creates it; the developer does. If it exists, FAIL — something wrote secrets during scaffolding.

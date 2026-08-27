@@ -205,7 +205,9 @@ Two things worth knowing about this layout:
 
 **Each component carries its own `CLAUDE.md`.** Claude Code loads those on demand — only when Claude actually works in that folder. The root `CLAUDE.md` keeps a one-row-per-component index, so it stays about the same size whether the project has two components or six.
 
-**Secrets live in one place and Claude can't read them.** All secrets go in a single gitignored `.env` at the project root. `.claude/settings.local.json` denies Claude both the file read and the obvious shell workarounds (`cat`, `type`, `Get-Content`, `printenv`) — a permission rule, not a promise. To fill it in, run `.\scripts\secure\Set-ProjectSecrets.ps1` **in your own terminal**; it prompts for each key with the input hidden. Claude Code runs commands with stdin closed, so it can't drive that script even if asked. Claude can run `Test-Readiness.ps1`, which reports which keys are set — by name, never by value.
+**Secrets live in one place and Claude can't read them.** All secrets go in a single gitignored `.env` at the project root, enforced two ways. `.claude/settings.local.json` denies the Read tool. Separately, a `PreToolUse` hook blocks any shell command that mentions the file — that second layer is the one that matters, because a permission deny list only blocks the exact commands you listed, while the allow list any usable project needs (`head`, `tail`, `grep`, `python`) leaves plenty of other ways to print a file. The hook runs before permission rules and overrides allow rules, so it closes the whole class rather than named instances.
+
+To fill the file in, run `.\scripts\secure\Set-ProjectSecrets.ps1` **in your own terminal**; it prompts for each key with the input hidden. Claude Code runs commands with stdin closed, so it can't drive that script even if asked. Claude can run `Test-Readiness.ps1`, which reports which keys are set — by name, never by value.
 
 After a successful `/execute-prp PRPs/v1_<slug>.md`:
 

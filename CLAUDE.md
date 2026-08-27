@@ -79,7 +79,8 @@ Inside the new project, the user runs `/execute-prp PRPs/v1_<slug>.md`. Claude w
 │   ├── .gitignore            # Multi-language defaults
 │   ├── .claude/
 │   │   ├── settings.local.json   # Permissions — allow list + deny rules blocking .env reads
-│   │   └── commands/         # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
+│   │   ├── commands/         # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
+│   │   └── hooks/            # block_secret_access.py — PreToolUse guard on .env
 │   ├── scripts/secure/       # Set-ProjectSecrets.ps1, Test-Readiness.ps1 (copied only when a project declares secrets)
 │   ├── tests/                # test_repo_hygiene.py — enforces the 500-line rule in scaffolded projects
 │   └── PRPs/                 # Base PRP template + canonical guide

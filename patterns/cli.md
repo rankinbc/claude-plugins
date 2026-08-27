@@ -111,7 +111,9 @@ pipx install .
 <cli-name> apply ./some-dir --yes
 ```
 
-During dev: `pip install -e .` from the project root and run the same commands.
+During dev: `pip install -e .` from the project root, then run the same commands.
+
+**Console scripts aren't always on PATH.** `pip install -e .` puts the `<cli-name>` executable in the interpreter's scripts directory, which is not on PATH for several common installs — Windows Store Python puts it under `...\LocalCache\local-packages\Python3xx\Scripts`, and a non-activated venv has the same problem. Always give `python -m <package_name>` as the fallback in the component README, and prefer it in validation gates so they don't depend on PATH at all. `__main__.py` exists in the folder structure for exactly this reason.
 
 ## Gotchas for CLAUDE.md
 
@@ -122,17 +124,19 @@ During dev: `pip install -e .` from the project root and run the same commands.
 - **Unicode-safe file handling**: test on Linux/Mac/Windows with non-ASCII filenames at least once.
 - **No network calls by default**: if the tool needs to hit the network, make it explicit (flag or env var).
 - **Permissions errors are non-fatal per file**: log, continue, exit 0 if at least one file was processed; exit 1 only if everything failed.
+- **Never assume the console script is on PATH.** Document `python -m <package_name>` alongside the `<cli-name>` form, and use `python -m` in anything automated. Store-Python and non-activated-venv installs put the script somewhere PATH doesn't reach.
 
 ## Validation
 
 From the project root:
 
 ```bash
-ruff check components/<component_name>/src/
-pytest -q components/<component_name>/tests/
+python -m ruff check components/<component_name>/src/
+python -m pytest -q components/<component_name>/tests/
 pip install -e .
-<cli-name> --help >/dev/null && echo "CLI invokable"
-<cli-name> --version
+python -m <package_name> --help >/dev/null && echo "CLI invokable"
+python -m <package_name> --version
+# PATH-independent on purpose — the console script may not be on PATH.
 ```
 
 ## Interview follow-ups

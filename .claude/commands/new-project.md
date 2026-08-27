@@ -320,6 +320,7 @@ Print a scaffolding manifest BEFORE files appear:
 >   │         └─ INITIAL.md   (pre-filled intent — one block per component; edit for new features)
 >   ├─ .claude/
 >   │    ├─ settings.local.json    (permissions — including deny rules that block Claude from your secrets)
+>   │    ├─ hooks/                (blocks shell commands that reach for your .env)
 >   │    └─ commands/              (/new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status)
 >   ├─ components/
 >   │    ├─ <component_1>/      (+ its own CLAUDE.md — rules load only when Claude works here)
@@ -370,6 +371,8 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
    - `tests/` — project-wide tests; receives `test_repo_hygiene.py` in item 9
 
 2. **`.claude/settings.local.json`** — copy from `deploy/.claude/settings.local.json`.
+
+   **`.claude/hooks/`** — copy `deploy/.claude/hooks/block_secret_access.py` unchanged. `settings.local.json` references it by path in a `PreToolUse` hook; without the file, every Bash call fails the hook and the secrets guarantee is gone. Copy it for every project, secrets or not — it's inert when no `.env` exists.
 
 3. **`.claude/commands/`** — copy all from `deploy/.claude/commands/` (`new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`).
 

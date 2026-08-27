@@ -158,9 +158,10 @@ python components/<component_name>/main.py             # Actual run
 ## Validation
 
 ```bash
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 python components/<component_name>/main.py --dry-run
-test -d output/<component_name>/state && test -d output/<component_name>/logs
+test -d output/<component_name>/state
+ls -d output/<component_name>/*_run/run.log
 grep -q "0 6" components/<component_name>/crontab.example
 ```
 

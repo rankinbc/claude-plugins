@@ -245,7 +245,7 @@ To schedule (weekly on Mondays at 8am):
 
 ```bash
 # Lint
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 
 # Smoke test
 python components/<component_name>/generate.py

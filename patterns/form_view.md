@@ -126,7 +126,7 @@ uvicorn components.<component_name>.app:app --reload
 ## Validation
 
 ```bash
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 python -c "from components.<component_name>.app import app; print('import ok')"
 uvicorn components.<component_name>.app:app --host 127.0.0.1 --port 8765 &
 sleep 2 && curl -f http://127.0.0.1:8765/ >/dev/null && echo "OK"

@@ -101,7 +101,7 @@ python components/<component_name>/analysis.py
 ## Validation
 
 ```bash
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 python components/<component_name>/analysis.py
 ls output/<component_name>/*/report.md >/dev/null && echo "Deliverable exists"
 ls output/<component_name>/*/charts/*.png 2>/dev/null

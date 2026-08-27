@@ -114,9 +114,9 @@ def client(test_db):
 From the project root:
 
 ```bash
-ruff check components/<component_name>/
-mypy components/<component_name>/app/
-pytest -q components/<component_name>/tests/
+python -m ruff check components/<component_name>/
+python -m mypy components/<component_name>/app/
+python -m pytest -q components/<component_name>/tests/
 # Startup smoke:
 (cd components/<component_name> && uvicorn app.main:app --host 127.0.0.1 --port 8765 &)
 sleep 2 && curl -f http://127.0.0.1:8765/docs >/dev/null && echo "OK"

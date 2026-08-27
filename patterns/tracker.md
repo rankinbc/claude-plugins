@@ -131,7 +131,7 @@ Generated summaries land at `output/<component_name>/<YYYY-MM-DD>_summary/SUMMAR
 ## Validation
 
 ```bash
-ruff check components/<component_name>/
+python -m ruff check components/<component_name>/
 python components/<component_name>/summary.py
 ls output/<component_name>/*/SUMMARY.md >/dev/null && echo "Summary generated"
 ```
