@@ -1,4 +1,4 @@
-# claude-project-scaffold
+# claude-project-scaffolder
 
 **Version 2.0** — scaffolds `scaffold_version: 2` projects. See [What's new in 2.0](#whats-new-in-20).
 
