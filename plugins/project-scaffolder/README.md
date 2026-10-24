@@ -1,5 +1,10 @@
 # project-scaffolder
 
+[![CI](https://github.com/rankinbc/claude-plugins/actions/workflows/project-scaffolder.yml/badge.svg)](https://github.com/rankinbc/claude-plugins/actions/workflows/project-scaffolder.yml)
+[![Release](https://img.shields.io/github/v/release/rankinbc/claude-plugins?filter=project-scaffolder--v*&label=release)](https://github.com/rankinbc/claude-plugins/releases?q=project-scaffolder--v&expanded=true)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Claude Code plugin](https://img.shields.io/badge/claude%20code-plugin-6e40c9)
+
 **Version 2.1** — a Claude Code plugin that scaffolds `scaffold_version: 2` projects. See [What's new in 2.1](#whats-new-in-21) and [What's new in 2.0](#whats-new-in-20).
 
 A scaffolder for new Claude Code projects. Instead of opening Claude Code in an empty folder and hoping it figures out a sensible structure, you run `/project-scaffolder:new-project`, answer a few questions, and end up with a fully researched, organized, plan-driven project ready to build.
@@ -82,7 +87,8 @@ This plugin front-loads the structure that prevents all of that *before any code
 
 - **Installs as a plugin.** No more cloning the kit and running Claude Code inside it. Install once from the `rankinbc` marketplace and run `/project-scaffolder:new-project` from any empty folder.
 - **Scaffolds where you are.** The new project lands in the folder you started Claude Code in (or in a `<project-name>/` subfolder if that folder isn't empty). You can still pick another path during the design review.
-- **Same output.** Scaffolded projects are unchanged: still `scaffold_version: 2`, with the same files and slash commands.
+- **Sturdier projects.** Still `scaffold_version: 2`, with the same layout and slash commands, but generated projects now install with one `pip install -e ".[dev]"`, run every component's tests together, and ship a `.env` guard that blocks when it can't run. The committed `.claude/settings.json` carries the deny rules and the guard; pre-approved commands stay in your own git-ignored `settings.local.json`.
+- **Tested.** The plugin's own `tests/` check the guard against 150+ commands and that every file the command references exists. See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -109,3 +115,15 @@ A Project Requirements Plan: a structured plan Claude generates from your projec
 ## How to use it
 
 Install the plugin (above), open Claude Code in an empty folder, run `/project-scaffolder:new-project`, and follow the prompts. For the full step-by-step walkthrough, see [QUICK-START.md](QUICK-START.md). For a longer narrative guide, see [docs/GUIDE.md](docs/GUIDE.md).
+
+---
+
+## Development
+
+The plugin is Markdown (the command, agents and patterns) plus the files in `deploy/` that are copied into every new project. [CLAUDE.md](CLAUDE.md) explains the layout for anyone, human or Claude, working on it.
+
+    cd plugins/project-scaffolder
+    python -m unittest discover -s tests
+    claude --plugin-dir .
+
+The tests run the `.env` guard through its launcher the way Claude Code does, so they need `sh` (Git Bash on Windows). Changes are listed in [CHANGELOG.md](CHANGELOG.md). MIT licensed.

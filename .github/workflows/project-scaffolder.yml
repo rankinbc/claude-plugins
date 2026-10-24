@@ -1,0 +1,30 @@
+name: project-scaffolder
+
+on:
+  push:
+    paths:
+      - 'plugins/project-scaffolder/**'
+      - '.github/workflows/project-scaffolder.yml'
+  pull_request:
+    paths:
+      - 'plugins/project-scaffolder/**'
+      - '.github/workflows/project-scaffolder.yml'
+
+defaults:
+  run:
+    working-directory: plugins/project-scaffolder
+
+jobs:
+  unittest:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      # The guard tests run the hook through sh, the way Claude Code does (Git Bash on Windows).
+      - run: python -m unittest discover -s tests -v
