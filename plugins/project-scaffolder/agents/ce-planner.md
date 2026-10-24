@@ -19,7 +19,7 @@ A prompt with:
 2. **Overall goal** — one paragraph describing what the user is trying to accomplish across all components
 3. **Components** — list of:
    - `name` — snake_case identifier
-   - `pattern` — path to the matching `patterns/<shape>.md`
+   - `pattern` — path to the matching `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md`
    - `purpose` — plain-language description of what this component does
    - `inputs` — declared input paths (e.g., `data/zendesk_exports/`) or "none"
    - `outputs` — declared output path (e.g., `output/<name>/<date>_<run>/`) or "none"
@@ -30,7 +30,7 @@ A prompt with:
 
 ### 1. Read each pattern file
 
-Use Read on every distinct pattern file referenced. A component using `patterns/analysis.md` and another using `patterns/report.md` means reading both. If two components share a pattern, you still only read it once.
+Use Read on every distinct pattern file referenced. A component using `${CLAUDE_PLUGIN_ROOT}/patterns/analysis.md` and another using `${CLAUDE_PLUGIN_ROOT}/patterns/report.md` means reading both. If two components share a pattern, you still only read it once.
 
 Note per pattern:
 - Default stack

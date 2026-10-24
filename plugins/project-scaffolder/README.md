@@ -1,10 +1,21 @@
-# claude-project-scaffolder
+# project-scaffolder
 
-**Version 2.0** — scaffolds `scaffold_version: 2` projects. See [What's new in 2.0](#whats-new-in-20).
+**Version 2.1** — a Claude Code plugin that scaffolds `scaffold_version: 2` projects. See [What's new in 2.1](#whats-new-in-21) and [What's new in 2.0](#whats-new-in-20).
 
-A scaffolder for new Claude Code projects. Instead of opening Claude Code in an empty folder and hoping it figures out a sensible structure, you run `/new-project`, answer a few questions, and end up with a fully researched, organized, plan-driven project ready to build.
+A scaffolder for new Claude Code projects. Instead of opening Claude Code in an empty folder and hoping it figures out a sensible structure, you run `/project-scaffolder:new-project`, answer a few questions, and end up with a fully researched, organized, plan-driven project ready to build.
 
 For the actual how-to-run-it, see [QUICK-START.md](QUICK-START.md). This doc is about *what it does* and *why you'd use it*.
+
+## Install
+
+Inside Claude Code:
+
+```
+/plugin marketplace add rankinbc/claude-plugins
+/plugin install project-scaffolder@rankinbc
+```
+
+Start a new Claude Code session afterwards — plugins load at startup.
 
 ---
 
@@ -19,13 +30,13 @@ Open Claude Code in an empty folder and say *"build me a dashboard"* and Claude 
 - **Resuming hurts.** A week later, Claude is re-learning your project from whatever's in the code.
 - **Temp files everywhere.** Single-use scripts, scratch outputs, and `notes.md` files accumulate at the root with no cleanup story.
 
-This kit front-loads the structure that prevents all of that *before any code is written*.
+This plugin front-loads the structure that prevents all of that *before any code is written*.
 
 ---
 
 ## What it does
 
-`/new-project` runs a short guided interview (~4-7 minutes), then:
+`/project-scaffolder:new-project` runs a short guided interview (~4-7 minutes), then:
 
 1. **Decomposes** your idea into named components, each matched to a proven pattern.
 2. **Researches** each component in parallel — picks libraries based on what works today, surfaces known gotchas.
@@ -67,6 +78,14 @@ This kit front-loads the structure that prevents all of that *before any code is
 
 ---
 
+## What's new in 2.1
+
+- **Installs as a plugin.** No more cloning the kit and running Claude Code inside it. Install once from the `rankinbc` marketplace and run `/project-scaffolder:new-project` from any empty folder.
+- **Scaffolds where you are.** The new project lands in the folder you started Claude Code in (or in a `<project-name>/` subfolder if that folder isn't empty). You can still pick another path during the design review.
+- **Same output.** Scaffolded projects are unchanged: still `scaffold_version: 2`, with the same files and slash commands.
+
+---
+
 ## What's new in 2.0
 
 Version 2 changes the shape of what gets scaffolded. The three-step flow you run is identical — `/new-project`, `cd` into the project, `/execute-prp` — but the project it produces is different enough that the manifest records it as `scaffold_version: 2`.
@@ -89,4 +108,4 @@ A Project Requirements Plan: a structured plan Claude generates from your projec
 
 ## How to use it
 
-Run `/new-project` in this folder and follow the prompts. For the full step-by-step walkthrough, see [QUICK-START.md](QUICK-START.md). For a longer narrative guide, see [docs/GUIDE.md](docs/GUIDE.md).
+Install the plugin (above), open Claude Code in an empty folder, run `/project-scaffolder:new-project`, and follow the prompts. For the full step-by-step walkthrough, see [QUICK-START.md](QUICK-START.md). For a longer narrative guide, see [docs/GUIDE.md](docs/GUIDE.md).

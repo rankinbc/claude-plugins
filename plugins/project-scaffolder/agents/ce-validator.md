@@ -154,7 +154,7 @@ Confirm the shipped slash commands contain the lifecycle logic documented for th
   - reference to the `--component` flag for partial builds
 - `.claude/commands/generate-prp.md` — contains the post-build feature flow (INITIAL.md → PRP). Should note that it's NOT used for initial build (option-B scope note).
 
-If any of these wiring pieces is missing, warn — the command files may have been overwritten or downgraded from an older template. Not a blocker (the project still scaffolds correctly; the lifecycle just won't self-manage), but worth surfacing to the main session so the user can re-copy from `deploy/`.
+If any of these wiring pieces is missing, warn — the command files may have been overwritten or downgraded from an older template. Not a blocker (the project still scaffolds correctly; the lifecycle just won't self-manage), but worth surfacing to the main session so the user can re-copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/commands/`.
 
 ## Return format
 

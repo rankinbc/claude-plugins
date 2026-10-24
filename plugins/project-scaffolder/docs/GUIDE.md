@@ -1,8 +1,8 @@
 # Creating a project — a walkthrough
 
-This is the full walkthrough for someone using `/new-project` for the first time. The [README](../README.md) has the short version; this one walks you through what you'll see at every step, what decisions you'll be asked to make, and what to do after the scaffold completes.
+This is the full walkthrough for someone using `/project-scaffolder:new-project` for the first time. The [README](../README.md) has the short version; this one walks you through what you'll see at every step, what decisions you'll be asked to make, and what to do after the scaffold completes.
 
-If you've scaffolded a project with this kit before, you probably don't need this doc.
+If you've scaffolded a project with this plugin before, you probably don't need this doc.
 
 ---
 
@@ -16,24 +16,31 @@ You don't need a precise spec either. A rough paragraph describing what you want
 
 ---
 
-## Step 1 — Open Claude Code in this folder
+## Step 1 — Install the plugin and open Claude Code in an empty folder
 
-Open a terminal, `cd` into this kit folder, and run:
+Install once, inside Claude Code:
 
 ```
-claude
+/plugin marketplace add rankinbc/claude-plugins
+/plugin install project-scaffolder@rankinbc
 ```
 
-You'll land in an interactive Claude Code session. The prompt is ready for your input.
+Then make an empty folder for the new project, `cd` into it, and start a new session:
+
+```
+mkdir my-project && cd my-project && claude
+```
+
+You'll land in an interactive Claude Code session. The prompt is ready for your input. The project will be created in this folder.
 
 ---
 
-## Step 2 — Run `/new-project`
+## Step 2 — Run `/project-scaffolder:new-project`
 
 Type:
 
 ```
-/new-project
+/project-scaffolder:new-project
 ```
 
 and press Enter. Claude will introduce the flow, then ask you to describe what you want to build.
@@ -90,7 +97,7 @@ You have three options:
 2. **Iterate** — "change the dashboard to use dash instead", "add a fourth component for X", "put it at `~/projects/sales` instead", "rename `analysis` to `insights`". Claude revises and re-shows.
 3. **Start over** — "actually I want something completely different". You'll loop back to the interview.
 
-The target path defaults to somewhere sensible under your home directory. You can change it in iteration.
+The target path defaults to the folder you started Claude Code in, or a `<project-name>/` subfolder of it if that folder isn't empty. You can change it in iteration.
 
 ### Phase 5 — Scaffold (≈30-60 seconds, hands-off)
 
@@ -168,7 +175,7 @@ At any approval moment, saying *"actually let's rethink this"* or *"start over"*
 
 If the scaffold finishes but something's off (missing component, wrong stack, etc.), you have two good options:
 
-1. **Delete the folder and re-run `/new-project`** with a clearer ask. Nothing outside the project folder was changed.
+1. **Delete the folder and re-run `/project-scaffolder:new-project`** with a clearer ask. Nothing outside the project folder was changed.
 2. **Open the project and ask Claude to fix it.** The scaffolded project's CLAUDE.md knows the structure; Claude can add components, rename things, or adjust the stack without a full re-scaffold.
 
 ---
@@ -228,7 +235,7 @@ To re-open Claude Code in the project later: `cd <project path> && claude`.
 
 **Does this upload my code anywhere?** No. Everything is local. Claude Code talks to Anthropic's API to think, but no project files are stored remotely.
 
-**Can I use this with an existing project?** Not directly — `/new-project` is for new projects. For existing work, copy the parts you want (the `.claude/commands/` folder, the `CLAUDE.md`, `PRPs/` scaffolding) into your own repo manually.
+**Can I use this with an existing project?** Not directly — `/project-scaffolder:new-project` is for new projects. For existing work, copy the parts you want (the `.claude/commands/` folder, the `CLAUDE.md`, `PRPs/` scaffolding) into your own repo manually.
 
 **Can Claude pick the stack for me?** Yes — in the interview, say *"pick a reasonable stack"* and Claude will choose based on your components (typically Python for analysis/reporting, Node or Python for APIs).
 

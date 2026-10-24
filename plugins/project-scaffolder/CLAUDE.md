@@ -1,40 +1,18 @@
-# CLAUDE.md — claude-prp-scaffold
+# CLAUDE.md — project-scaffolder plugin
 
-This folder is a **scaffolder** for new Claude Code projects, not a project itself. When a user opens Claude Code here, they almost always want one of two things:
+This folder is the source of the **project-scaffolder** Claude Code plugin, inside the `rankinbc/claude-plugins` marketplace monorepo. Users never open Claude Code here: they install the plugin (`/plugin install project-scaffolder@rankinbc`) and run `/project-scaffolder:new-project` from an empty folder, which becomes their new project. This file is loaded only when someone works on the plugin itself.
 
-1. **Help creating a new Claude Code project** — the primary use case. Route them to `/new-project`.
-2. **Editing the scaffolder itself** — they're maintaining patterns, sub-agents, or the deploy assets. See "Kit development" below.
+When the plugin is installed, the command and agents read the plugin's own files through `${CLAUDE_PLUGIN_ROOT}` (the install folder). Every file they write goes into the target project, which defaults to the user's current working directory. Keep that split when you edit `commands/` or `agents/`: plugin files are referenced as `${CLAUDE_PLUGIN_ROOT}/...`, project files as plain relative paths.
 
-Default to (1) unless the user makes (2) explicit.
-
----
-
-## When a user opens Claude here
-
-If their first message is anything like *"I want to build X"*, *"help me start a project"*, *"can you make me a dashboard / API / tool"*, or just a vague *"hi"* with no clear task — the right response is to point them at `/new-project`, briefly explain what it does, and let them run it.
-
-Do **not** start writing code in this folder. This folder is the scaffolder; the user's project will be created in a different directory.
-
-A good first response looks like:
-
-> This folder is a scaffolder for new Claude Code projects. To get started, type `/new-project` — I'll run a short guided interview, research the components in parallel, and scaffold a full project (folder layout, conventions, slash commands, and a v1 build plan).
->
-> The full flow is 3 steps:
-> 1. `/new-project` here — scaffolds your new project
-> 2. `cd` into the new project and open Claude Code there
-> 3. `/execute-prp PRPs/v1_<slug>.md` — Claude builds the components from the plan
-
-Then wait for them to run `/new-project`. Don't pre-emptively interview them — `/new-project` does that.
-
-If `HANDOFF.md` exists at the kit root, a previous session paused mid-work — read it first.
+If `HANDOFF.md` exists in this folder, a previous session paused mid-work — read it first.
 
 ---
 
 ## The 3-step flow (what `/new-project` produces and what comes after)
 
-### Step 1 — Scaffold (in this folder)
+### Step 1 — Scaffold (in the user's empty folder)
 
-User runs `/new-project`. The command (defined in `.claude/commands/new-project.md`):
+User runs `/project-scaffolder:new-project`. The command (defined in `commands/new-project.md`):
 
 - Interviews the user adaptively (~4-7 minutes)
 - Decomposes their intent into named **components**, each matched to a pattern in `patterns/`
@@ -60,19 +38,20 @@ Inside the new project, the user runs `/execute-prp PRPs/v1_<slug>.md`. Claude w
 ## Repo layout (for when you need to find something)
 
 ```
-<kit>/
-├── README.md                 # User-facing pitch + 3 steps
+plugins/project-scaffolder/
+├── .claude-plugin/plugin.json  # Plugin manifest (name, version)
+├── README.md                 # User-facing pitch + install
+├── QUICK-START.md            # Install + the 3 steps
 ├── CLAUDE.md                 # This file
 ├── docs/GUIDE.md             # Longer end-user walkthrough
-├── .claude/
-│   ├── agents/               # Sub-agents used by /new-project
-│   │   ├── ce-researcher.md  # Per-component research (parallel)
-│   │   ├── ce-planner.md     # Multi-component design proposal
-│   │   ├── ce-scaffold.md    # Per-component folder writer (parallel)
-│   │   └── ce-validator.md   # Post-scaffold structural checks
-│   └── commands/
-│       ├── new-project.md    # THE entry point
-│       └── handoff.md        # Pause + resume
+├── agents/                   # Sub-agents used by /new-project (namespaced project-scaffolder:ce-*)
+│   ├── ce-researcher.md      # Per-component research (parallel)
+│   ├── ce-planner.md         # Multi-component design proposal
+│   ├── ce-scaffold.md        # Per-component folder writer (parallel)
+│   └── ce-validator.md       # Post-scaffold structural checks
+├── commands/
+│   ├── new-project.md        # THE entry point (/project-scaffolder:new-project)
+│   └── handoff.md            # Pause + resume (/project-scaffolder:handoff)
 ├── deploy/                   # Everything /new-project copies into scaffolded projects
 │   ├── CLAUDE.md             # Project-level rules (ships into every new project)
 │   ├── INITIAL.md            # Per-feature intake template
@@ -87,7 +66,7 @@ Inside the new project, the user runs `/execute-prp PRPs/v1_<slug>.md`. Claude w
 └── patterns/                 # Pattern shapes (dashboard, tracker, api, analysis, etc.)
 ```
 
-Two distinct buckets: files **under `deploy/`** ship into every scaffolded project; files **outside `deploy/`** stay in the kit and run during scaffolding.
+Two distinct buckets: files **under `deploy/`** ship into every scaffolded project; files **outside `deploy/`** stay in the plugin and run during scaffolding.
 
 ---
 
@@ -98,8 +77,9 @@ Only relevant when the user is editing the scaffolder itself, not creating a new
 - **Anything under `deploy/` ships to every scaffolded project forever.** Be careful — bloat hurts every user.
 - **Keep `deploy/CLAUDE.md` lean.** Scaffolded projects inherit it.
 - **Patterns evolve.** If you find yourself adjusting a scaffolded project post-hoc in ways `/new-project` should've gotten right, update `patterns/<shape>.md`.
-- **Test new `deploy/.claude/commands/` slash commands inside a scaffolded project**, not in the kit.
-- **Don't put kit-dev plans under `deploy/PRPs/`** — those ship to users. Use the kit root for kit-dev planning docs.
+- **Test new `deploy/.claude/commands/` slash commands inside a scaffolded project**, not here.
+- **Test `commands/` and `agents/` changes as an installed plugin** (`claude --plugin-dir plugins/project-scaffolder` from an empty folder), so `${CLAUDE_PLUGIN_ROOT}` and the agent namespace behave as they do for users.
+- **Don't put kit-dev plans under `deploy/PRPs/`** — those ship to users. Keep plugin-dev planning docs out of `deploy/`.
 
 ### Context discipline (kit work)
 

@@ -1,6 +1,14 @@
+---
+description: Guided interview that researches, plans and scaffolds a new structured Claude Code project in the current folder
+---
+
 # /new-project
 
-Guided conversational scaffolder using **parallel sub-agent orchestration**. A scaffolded project is a well-organized workspace containing **one or more components** — each component is a purposeful, named piece of work (an analysis, a CLI, a report, etc.) and maps to a single pattern from `patterns/`.
+Guided conversational scaffolder using **parallel sub-agent orchestration**. A scaffolded project is a well-organized workspace containing **one or more components** — each component is a purposeful, named piece of work (an analysis, a CLI, a report, etc.) and maps to a single pattern from `${CLAUDE_PLUGIN_ROOT}/patterns/`.
+
+**Two locations — never mix them up:**
+- **Plugin files** (read-only templates): everything this command reads — `${CLAUDE_PLUGIN_ROOT}/patterns/`, `${CLAUDE_PLUGIN_ROOT}/deploy/`, `${CLAUDE_PLUGIN_ROOT}/agents/` — lives in the plugin's install folder, `${CLAUDE_PLUGIN_ROOT}`. Never write there.
+- **The new project** (everything you write): the target path chosen in step 9, which defaults to the user's current working directory. Every relative path in this document (`components/`, `PRPs/`, `.claude/`, `.scaffolding/`, …) is relative to that target path.
 
 Use this when the user:
 - Runs `/new-project` explicitly
@@ -17,7 +25,7 @@ A project is a named workspace with its own folder structure. Inside it live 1 o
 
 Example: a user says "I want to analyze our support tickets, generate a weekly report, and have a CLI to trigger a refresh." That's one project (`support_workflow`) with three components: `ticket_insights` (analysis), `weekly_report` (report), `refresh_cli` (cli).
 
-Each component maps to one pattern in `patterns/`. Components share the project's `data/` (inputs) and `output/` (artifacts) directories.
+Each component maps to one pattern in `${CLAUDE_PLUGIN_ROOT}/patterns/`. Components share the project's `data/` (inputs) and `output/` (artifacts) directories.
 
 ---
 
@@ -56,13 +64,13 @@ Design Proposal ← main session shows to user
      Handoff to user
 ```
 
-**Custom sub-agents** live in `.claude/agents/`:
-- `ce-researcher` — web research + pattern extraction + gotcha mining (per component)
-- `ce-planner` — synthesizes multi-component design proposal
-- `ce-scaffold` — writes one component's folder (per component, parallel)
-- `ce-validator` — post-scaffold smoke checks
+**Custom sub-agents** ship with this plugin in `${CLAUDE_PLUGIN_ROOT}/agents/` and are registered under the plugin's namespace:
+- `project-scaffolder:ce-researcher` — web research + pattern extraction + gotcha mining (per component)
+- `project-scaffolder:ce-planner` — synthesizes multi-component design proposal
+- `project-scaffolder:ce-scaffold` — writes one component's folder (per component, parallel)
+- `project-scaffolder:ce-validator` — post-scaffold smoke checks
 
-Dispatch them via the **Task tool**, setting `subagent_type` to the agent name. They run in isolated context with their own tool access; the main session stays clean.
+Dispatch them via the **Task tool**, setting `subagent_type` to the namespaced agent name above (e.g. `project-scaffolder:ce-researcher`). If the Task tool rejects that name, check the available agent list for the `ce-*` entries and use the exact name it shows. They run in isolated context with their own tool access; the main session stays clean.
 
 ---
 
@@ -126,7 +134,7 @@ Do NOT ask all questions upfront. Ask one at a time. Let their answers drive wha
 
 > **Step 2/6 — Component breakdown**
 
-**Break the user's intent into 1-N components silently** (each purposeful, snake_case-named, mapped to one pattern from `patterns/`). Then show a one-line sanity check:
+**Break the user's intent into 1-N components silently** (each purposeful, snake_case-named, mapped to one pattern from `${CLAUDE_PLUGIN_ROOT}/patterns/`). Then show a one-line sanity check:
 
 > I'll set this up as **3 components**: `ticket_insights` (pattern analysis), `weekly_report` (recurring report), `refresh_cli` (CLI tool).
 >
@@ -156,19 +164,19 @@ If the user replies "yes" / "looks good" / "go" / silence-after-beat → proceed
 
 | Component purpose | Pattern file | Default stack |
 |---|---|---|
-| Interactive view of existing data | `patterns/dashboard.md` | Python + Streamlit |
-| Simple list/status of items | `patterns/tracker.md` | Python + markdown files |
-| Gather info, synthesize, deliver a written report | `patterns/research.md` | Markdown-based research workflow, no code needed |
-| Examine a dataset, produce findings | `patterns/analysis.md` | Python + pandas |
-| Recurring report combining data + narrative (weekly/monthly/exec summary) | `patterns/report.md` | Python + pandas + Jinja2 |
-| PRD, one-pager, launch brief, product doc | `patterns/product_doc.md` | Markdown (+ optional pandoc for PDF) |
-| Form input → stored → summary view | `patterns/form_view.md` | Python + FastAPI + Jinja / Streamlit |
-| Runs on a schedule, processes things, notifies | `patterns/automation.md` | Python script + cron |
-| CRUD API with auth | `patterns/api.md` | Python + FastAPI + SQLAlchemy |
-| Command-line tool | `patterns/cli.md` | Python + click / Typer |
-| System-to-system integration | `patterns/integration.md` | Python + requests + SQLAlchemy |
+| Interactive view of existing data | `${CLAUDE_PLUGIN_ROOT}/patterns/dashboard.md` | Python + Streamlit |
+| Simple list/status of items | `${CLAUDE_PLUGIN_ROOT}/patterns/tracker.md` | Python + markdown files |
+| Gather info, synthesize, deliver a written report | `${CLAUDE_PLUGIN_ROOT}/patterns/research.md` | Markdown-based research workflow, no code needed |
+| Examine a dataset, produce findings | `${CLAUDE_PLUGIN_ROOT}/patterns/analysis.md` | Python + pandas |
+| Recurring report combining data + narrative (weekly/monthly/exec summary) | `${CLAUDE_PLUGIN_ROOT}/patterns/report.md` | Python + pandas + Jinja2 |
+| PRD, one-pager, launch brief, product doc | `${CLAUDE_PLUGIN_ROOT}/patterns/product_doc.md` | Markdown (+ optional pandoc for PDF) |
+| Form input → stored → summary view | `${CLAUDE_PLUGIN_ROOT}/patterns/form_view.md` | Python + FastAPI + Jinja / Streamlit |
+| Runs on a schedule, processes things, notifies | `${CLAUDE_PLUGIN_ROOT}/patterns/automation.md` | Python script + cron |
+| CRUD API with auth | `${CLAUDE_PLUGIN_ROOT}/patterns/api.md` | Python + FastAPI + SQLAlchemy |
+| Command-line tool | `${CLAUDE_PLUGIN_ROOT}/patterns/cli.md` | Python + click / Typer |
+| System-to-system integration | `${CLAUDE_PLUGIN_ROOT}/patterns/integration.md` | Python + requests + SQLAlchemy |
 
-Read each matching `patterns/<shape>.md` to understand its default stack, folder conventions, and I/O expectations.
+Read each matching `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md` to understand its default stack, folder conventions, and I/O expectations.
 
 ---
 
@@ -214,11 +222,11 @@ Worked example for a 3-component project:
 
 Example invocation pattern (you, the orchestrator, decide prompts per component):
 
-> Task tool, `subagent_type: "ce-researcher"`, one call per component:
+> Task tool, `subagent_type: "project-scaffolder:ce-researcher"`, one call per component:
 >
 > ```
 > User intent: <1-3 sentence summary of this specific component>
-> Shape classification: patterns/analysis.md
+> Shape classification: ${CLAUDE_PLUGIN_ROOT}/patterns/analysis.md
 > Specific framework/stack: pandas
 > Depth: light
 >
@@ -254,7 +262,7 @@ Keep each line under ~70 characters. If a research brief says "pattern defaults 
 
 Dispatch ce-planner via Task tool once with the full multi-component spec:
 
-> Task tool, `subagent_type: "ce-planner"`, prompt:
+> Task tool, `subagent_type: "project-scaffolder:ce-planner"`, prompt:
 >
 > ```
 > Project name: <slug>
@@ -276,11 +284,11 @@ ce-planner returns a proposal in plain language. Show it to the user essentially
 
 ### 9. Unified proposal + iteration (the single big approval moment)
 
-**Pre-compute the target path** before showing the proposal. Default: `~/projects/<slugified-project-name>`. Expand `~` to the user's home directory. No separate ask — the path is part of the proposal and the user can change it during iteration.
+**Pre-compute the target path** before showing the proposal. Default: the user's **current working directory** (the folder Claude Code was started in) when it is empty — ignore a lone `.git/`. If it already holds other files, default to `<current working directory>/<slugified-project-name>` so nothing existing is touched. Use the absolute path. Never target anything inside `${CLAUDE_PLUGIN_ROOT}` — that is the plugin's install folder. No separate ask — the path is part of the proposal and the user can change it during iteration.
 
 **Show ce-planner's proposal verbatim, preceded by a target-path line.** The user sees one block with: target path + description + components + flow + stack + any extra top-level folders. Example shape:
 
-> I'd create **`support_workflow`** at `~/projects/support_workflow`. (Want a different location? Tell me during review.)
+> I'd create **`support_workflow`** right here, in `<current working directory>`. (Want a different location? Tell me during review.)
 >
 > <ce-planner output here — components bullets + data-flow sentence + stack + optional "Extra top-level folders" block + the "Anything you'd change?" closer>
 
@@ -349,7 +357,7 @@ Print a scaffolding manifest BEFORE files appear:
 
 #### 11a. Main session writes the project-root skeleton
 
-All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical template; files outside `deploy/` stay in the kit.
+All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAUDE_PLUGIN_ROOT}/deploy/` as the canonical template; plugin files outside `deploy/` are never copied. Copy with the Read and Write tools (or `cp` with both paths quoted — the plugin folder can contain spaces); the destination is always inside the target path.
 
 1. **Create the target directory** and the folder skeleton:
    - `components/` (empty — ce-scaffold will fill per component)
@@ -370,17 +378,17 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
    - `PRPs/source/` — holds `INITIAL.md` (written in item 7 below), so no `.gitkeep` is needed
    - `tests/` — project-wide tests; receives `test_repo_hygiene.py` in item 9
 
-2. **`.claude/settings.local.json`** — copy from `deploy/.claude/settings.local.json`.
+2. **`.claude/settings.local.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.local.json`.
 
-   **`.claude/hooks/`** — copy `deploy/.claude/hooks/block_secret_access.py` unchanged. `settings.local.json` references it by path in a `PreToolUse` hook; without the file, every Bash call fails the hook and the secrets guarantee is gone. Copy it for every project, secrets or not — it's inert when no `.env` exists.
+   **`.claude/hooks/`** — copy `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/block_secret_access.py` unchanged. `settings.local.json` references it by path in a `PreToolUse` hook; without the file, every Bash call fails the hook and the secrets guarantee is gone. Copy it for every project, secrets or not — it's inert when no `.env` exists.
 
-3. **`.claude/commands/`** — copy all from `deploy/.claude/commands/` (`new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`).
+3. **`.claude/commands/`** — copy all from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/commands/` (`new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`).
 
-4. **`.gitignore`** — copy from `deploy/.gitignore`.
+4. **`.gitignore`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.gitignore`.
 
-5. **`PRPs/templates/prp_base.md`** + **`PRPs/README.md`** — copy both from `deploy/PRPs/`.
+5. **`PRPs/templates/prp_base.md`** + **`PRPs/README.md`** — copy both from `${CLAUDE_PLUGIN_ROOT}/deploy/PRPs/`.
 
-6. **`PRPs/source/INITIAL.md`** — copy `deploy/INITIAL.md` as-is (blank template). In the option-B flow, `INITIAL.md` is the **per-feature intake for post-build feature work**, not the scaffold spec — so it ships empty, waiting for the user's next feature idea. The v1 implementation plan is written directly to `PRPs/v1_<project_slug>.md` in step 11d below, not funneled through INITIAL.md.
+6. **`PRPs/source/INITIAL.md`** — copy `${CLAUDE_PLUGIN_ROOT}/deploy/INITIAL.md` as-is (blank template). In the option-B flow, `INITIAL.md` is the **per-feature intake for post-build feature work**, not the scaffold spec — so it ships empty, waiting for the user's next feature idea. The v1 implementation plan is written directly to `PRPs/v1_<project_slug>.md` in step 11d below, not funneled through INITIAL.md.
 
 7. **`README.md`** — a SHORT project README (one page max):
    - **Status banner block at the very top**, delimited by HTML comment markers `<!-- status:begin -->` / `<!-- status:end -->` so `/execute-prp` can rewrite the banner cleanly when the build completes. Default (plan stage — scaffold just finished, PRP already written) text:
@@ -431,9 +439,9 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
    cache_dir = "~/.cache/mypy"
    ```
 
-   `--maxfail=3` caps the blast radius of a broken change without hiding whether one thing or everything broke. Cache dirs point outside the tree per `deploy/CLAUDE.md`'s "Tool caches outside the project" rule. Add `[tool.ruff] select`/`target-version` to match the project stack.
+   `--maxfail=3` caps the blast radius of a broken change without hiding whether one thing or everything broke. Cache dirs point outside the tree per `${CLAUDE_PLUGIN_ROOT}/deploy/CLAUDE.md`'s "Tool caches outside the project" rule. Add `[tool.ruff] select`/`target-version` to match the project stack.
 
-   Copy `deploy/tests/test_repo_hygiene.py` to `tests/test_repo_hygiene.py` unchanged. It enforces the 500-line rule and the no-artifacts-at-root rule that `CLAUDE.md` declares.
+   Copy `${CLAUDE_PLUGIN_ROOT}/deploy/tests/test_repo_hygiene.py` to `tests/test_repo_hygiene.py` unchanged. It enforces the 500-line rule and the no-artifacts-at-root rule that `CLAUDE.md` declares.
 
    **One environment, one install.** The project's first-run setup is exactly two lines:
    ```
@@ -451,7 +459,7 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
       ZENDESK_API_TOKEN=
       ```
       If two components declare the same key, it appears once.
-    - **`scripts/secure/`** — copy both files from `deploy/scripts/secure/` (`Set-ProjectSecrets.ps1`, `Test-Readiness.ps1`) unchanged.
+    - **`scripts/secure/`** — copy both files from `${CLAUDE_PLUGIN_ROOT}/deploy/scripts/secure/` (`Set-ProjectSecrets.ps1`, `Test-Readiness.ps1`) unchanged.
 
 **Do NOT run `git init`.** The user might not want version control in this folder, or might plan to place it inside an existing repo. `.scaffolding/README.md` surfaces `git init` as one optional setup item — the user decides.
 
@@ -459,12 +467,12 @@ All sourced from **`deploy/`** unless noted. Treat `deploy/` as the canonical te
 
 For each component, dispatch ce-scaffold via Task tool — all in a single message so they run in parallel:
 
-> Task tool, `subagent_type: "ce-scaffold"`, one call per component:
+> Task tool, `subagent_type: "project-scaffolder:ce-scaffold"`, one call per component:
 >
 > ```
 > project_root: <absolute target path>
 > component_name: <snake_case name>
-> pattern_file: <absolute path to patterns/<shape>.md>
+> pattern_file: ${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md
 > purpose: <one-paragraph description>
 > inputs: <declared input path(s) or "none">
 > outputs: <declared output path>
@@ -534,7 +542,7 @@ Per-component gotchas and I/O paths live in `components/<name>/CLAUDE.md`. Read 
 
 ---
 
-<then append deploy/CLAUDE.md verbatim — the generic Session Start / Context Discipline / Code / Testing / Docs / AI Behavior / Project Cleanliness / Task Completion sections>
+<then append ${CLAUDE_PLUGIN_ROOT}/deploy/CLAUDE.md verbatim — the generic Session Start / Context Discipline / Code / Testing / Docs / AI Behavior / Project Cleanliness / Task Completion sections>
 ```
 
 **Why this structure:** the project-specific enforcement rules and per-component gotchas sit at the TOP. Claude reads these first and knows the structural contract before falling through to generic defaults.
@@ -686,7 +694,7 @@ After both files are written, print:
 
 **You** (main session) now synthesize `PRPs/v1_<project_slug>.md` directly — no intermediate INITIAL.md, no `/generate-prp` step. You already have every piece of context needed: the user interview, ce-researcher briefs per component, ce-scaffold returns (stub files + validation commands + dependencies + secret keys), the per-component gotchas ce-scaffold wrote into `components/<name>/CLAUDE.md`, the design proposal, data flow, build order rationale, and (if present) the user's pre-written `REQUIREMENTS.md`.
 
-Follow the shape of `PRPs/templates/prp_base.md` adapted for multi-component scope. Target ≤ 800 lines — if heading longer, you're duplicating CLAUDE.md content; cite instead of inline.
+Follow the shape of `PRPs/templates/prp_base.md` (the copy you wrote into the project in 11a) adapted for multi-component scope. Target ≤ 800 lines — if heading longer, you're duplicating CLAUDE.md content; cite instead of inline.
 
 Required sections in order:
 
@@ -725,7 +733,7 @@ Write the file. Then print:
 
 Dispatch ce-validator via Task tool:
 
-> Task tool, `subagent_type: "ce-validator"`, prompt:
+> Task tool, `subagent_type: "project-scaffolder:ce-validator"`, prompt:
 >
 > ```
 > project_root: <absolute target path>
@@ -769,12 +777,13 @@ Based on result:
    - **macOS / Linux** — `<target>/.scaffolding/start.sh`:
      ```bash
      #!/usr/bin/env bash
-     # One-time auto-chain helper — deletes itself after launching.
-     cd "$(dirname "$0")/.."
-     trap 'rm -- "$0"' EXIT
+     # One-time auto-chain helper — deletes itself, then launches Claude Code.
+     self="${BASH_SOURCE[0]}"
+     cd "$(dirname "$self")/.."
+     rm -- "$self"
      exec claude "/execute-prp PRPs/v1_<slug>.md"
      ```
-     `chmod +x` it. Substitute the actual slug.
+     `chmod +x` it. Substitute the actual slug. Write it exactly as shown: it deletes itself before `exec` because `exec` replaces the shell, so an `EXIT` trap would never run.
    - **Windows** — `<target>\.scaffolding\start.bat`:
      ```batch
      @echo off
@@ -819,7 +828,7 @@ Show direct, step-by-step instructions — not "open this file and read it":
 
 ## If the user wants a reusable framework template (rare)
 
-If a developer explicitly asks for a *reusable context-engineering template* for a framework (not a project that uses it), that's outside `/new-project`'s scope. Point them to `use-cases/template-generator/` in the kit — the upstream meta-generator flow — and exit. If they just want to build something that uses a specific framework, stay in `/new-project` and research the framework during the normal research step.
+If a developer explicitly asks for a *reusable context-engineering template* for a framework (not a project that uses it), that's outside `/new-project`'s scope. Tell them this plugin doesn't include a template generator, and exit. If they just want to build something that uses a specific framework, stay in `/new-project` and research the framework during the normal research step.
 
 ---
 
@@ -827,7 +836,7 @@ If a developer explicitly asks for a *reusable context-engineering template* for
 
 If the user wants **pure knowledge work** — one or more research components, no code — you still use the component model:
 
-- Component pattern is `patterns/research.md` or `patterns/product_doc.md`
+- Component pattern is `${CLAUDE_PLUGIN_ROOT}/patterns/research.md` or `${CLAUDE_PLUGIN_ROOT}/patterns/product_doc.md`
 - No `.py` files inside the component — just markdown templates
 - `data/<source>/` holds reference material they want to synthesize from
 - `output/<component>/<date>_<run>/` holds deliverables

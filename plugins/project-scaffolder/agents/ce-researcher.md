@@ -15,7 +15,7 @@ Your job is to return a **concise, structured research brief** that the planner 
 
 A prompt describing:
 - **User intent** — what they're trying to build (1-3 sentences)
-- **Shape classification** — which `patterns/<shape>.md` file matches (dashboard, tracker, api, etc.)
+- **Shape classification** — which `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md` file matches (dashboard, tracker, api, etc.)
 - **Specific framework or stack** — if the user named one (e.g., "Pydantic AI", "FastAPI", "Streamlit")
 - **Depth directive** — "light" (standard starter), "medium" (framework has real gotchas), "heavy" (deep idiomatic research needed for a framework with significant version/idiom churn or a niche domain)
 
@@ -23,7 +23,7 @@ A prompt describing:
 
 ### 1. Read the matching pattern file
 
-Start by reading `patterns/<shape>.md` from the repo (via Read tool). This tells you:
+Start by reading `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md` — the path the main session gave you — with the Read tool. This tells you:
 - Default stack
 - Folder structure
 - Starter code patterns
@@ -59,7 +59,7 @@ For domain-specific research (if user's domain is unusual — e.g., healthcare d
 
 ### 4. Use sub-agents for web-heavy tasks
 
-If you need to scan many pages, use Glob/Read to check local kit content first (including `use-cases/` from upstream — there may be a relevant specialized template like `use-cases/pydantic-ai/` that already has the patterns you need).
+If you need to scan many pages, use Glob/Read to check the plugin's own pattern files under `${CLAUDE_PLUGIN_ROOT}/patterns/` first — another pattern may already cover what you need.
 
 For web research, use WebSearch + WebFetch. Keep the main session's context clean — do all the reading yourself, then summarize.
 

@@ -1,34 +1,51 @@
 # Quick Start
 
-A scaffolder for creating new Claude Code projects. Run one command, answer a few questions, Claude does research on the topic of your project, and sets up a fully structured project with an organized folder layout, conventions, organization rules, executable build plan, and built-in workflow system (PRP workflow) for adding new features in an organized, context-smart way —
+A scaffolder for creating new Claude Code projects. Run one command, answer a few questions, Claude does research on the topic of your project, and sets up a fully structured project with an organized folder layout, conventions, organization rules, executable build plan, and built-in workflow system (PRP workflow) for adding new features in an organized, context-smart way.
 
-**Why use it:** opening Claude Code in an empty folder and prompting *"build me X"* leads to drift fast — Claude picks a stack on the fly, conventions get invented and forgotten, no plan to check against, temporary one-off files everywhere. This kit front-loads the structure that prevents all of that.
+**Why use it:** opening Claude Code in an empty folder and prompting *"build me X"* leads to drift fast — Claude picks a stack on the fly, conventions get invented and forgotten, no plan to check against, temporary one-off files everywhere. This plugin front-loads the structure that prevents all of that.
+
+---
+
+## Step 0 — Install (once)
+
+Inside Claude Code:
+
+```
+/plugin marketplace add rankinbc/claude-plugins
+/plugin install project-scaffolder@rankinbc
+```
+
+Then start a new Claude Code session — plugins load at startup.
 
 ---
 
 ## Step 1 — Scaffold
 
-Open claude in this directory (claude-project-scaffolder)
- 
- type:
+Make an empty folder for your project and open Claude Code in it:
 
 ```
-/new-project
+mkdir my-project && cd my-project && claude
 ```
 
-Claude runs a short interview (~4-7 minutes), researches your components in parallel, proposes a structure for you to approve, and scaffolds the full project: folder layout, component stubs, a `CLAUDE.md` with enforcement rules, and a complete implementation plan at `PRPs/v1_<slug>.md`.
+Type:
+
+```
+/project-scaffolder:new-project
+```
+
+Claude runs a short interview (~4-7 minutes), researches your components in parallel, proposes a structure for you to approve, and scaffolds the full project into this folder: folder layout, component stubs, a `CLAUDE.md` with enforcement rules, and a complete implementation plan at `PRPs/v1_<slug>.md`. (If the folder isn't empty, it proposes a `<project-name>/` subfolder instead; you can change the location during the review.)
 
 ---
 
-## Step 2 — Open Claude in a new window in the newly created directory
+## Step 2 — Open Claude in a new window in the new project
 
-When `/new-project` finishes, it prints the exact command to reopen Claude Code in your new project:
+When `/project-scaffolder:new-project` finishes, it prints the exact command to reopen Claude Code in your new project:
 
 ```
 cd <path-to-new-project> && claude
 ```
 
-Run it. Fresh session, now inside the scaffolded project.
+Run it. A fresh session picks up the project's own `CLAUDE.md`, settings and slash commands.
 
 ---
 

@@ -1,3 +1,7 @@
+---
+description: Summarize the current session into HANDOFF.md so the next session can resume with full context
+---
+
 # Session Handoff
 
 Summarize the current session and write it to `HANDOFF.md` at the project root so the next session (or the next day) can resume immediately with full context.

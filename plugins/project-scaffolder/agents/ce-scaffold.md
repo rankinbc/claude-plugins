@@ -17,7 +17,7 @@ A prompt with:
 
 - **project_root** — absolute path to the scaffolded project (e.g., `/home/user/projects/support-workflow`)
 - **component_name** — snake_case name (e.g., `ticket_insights`)
-- **pattern_file** — absolute path to the matching `patterns/<shape>.md` in the kit repo
+- **pattern_file** — absolute path to the matching `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md` in the plugin's install folder (read-only — never write there)
 - **purpose** — one-paragraph plain-language description of what this component does
 - **inputs** — declared input path(s) within the project (e.g., `data/zendesk_exports/`) — may be empty for components that produce but don't consume
 - **outputs** — declared output path within the project (e.g., `output/ticket_insights/<YYYY-MM-DD>_<slug>/`) — may be empty for components that don't generate artifacts (rare)
@@ -27,7 +27,7 @@ A prompt with:
 
 ### 1. Read the pattern file
 
-Start by reading the pattern file. Sections split by consumer (see `patterns/README.md` for the full convention):
+Start by reading the pattern file. Sections split by consumer (see `${CLAUDE_PLUGIN_ROOT}/patterns/README.md` for the full convention):
 
 - **`## Default stack`** — feeds the component README "Stack" line. Confirm it matches the project stack, or adapt.
 - **`## Folder structure to scaffold`** — the subfolders the pattern recommends inside the component. Summarized in the README "Structure" section.
