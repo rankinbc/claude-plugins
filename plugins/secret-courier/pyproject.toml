@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "secret-courier"
-version = "0.1.0"
+version = "0.2.0"
 description = "Claude Code plugin that moves secrets between stores and targets by name, so the model never sees a value and nothing is left lying around"
 readme = "README.md"
 license = { text = "MIT" }

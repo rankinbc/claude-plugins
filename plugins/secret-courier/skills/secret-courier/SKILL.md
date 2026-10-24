@@ -22,7 +22,7 @@ did and when.
 |---|---|
 | A tool, script or app needs a secret the developer has | `courier exists <name>` -> `missing`: `courier prompt <name> --description "<what it is for>" --source "<where it comes from>"`. A console opens with a masked prompt; tell the developer to type or paste the value THERE, then continue with the name. |
 | A repo needs the value in its local config (`.env`, `appsettings.local.json`, dotnet user-secrets) | `courier inject --target <file or .csproj> --format dotenv\|json\|user-secrets --map KEY=dpapi:<name>`. Refuses a file git would not ignore. The copy is recorded in the ledger. |
-| A command needs the value only while it runs | `courier run --env VAR=dpapi:<name> -- <command> <args>`. The value exists only in that child process. Prefer this over `inject`. |
+| A command needs the value only while it runs | `courier run --env VAR=dpapi:<name> -- <command> <args>`. The value exists only in that child process; its output comes back with the value masked, and it cannot read keyboard input. Prefer this over `inject`. |
 | Is this token still valid? | `courier test <name> <endpoint-id>` (ids in `config/endpoints.json`; `--param org=<x>` fills `{org}`). Reports `valid 200` / `invalid 401`. |
 | Move a secret between stores | `courier copy dpapi:<name> credman:<name>` (`env:` and `keyvault:` are sources only; an existing destination needs `--replace`). |
 | What plaintext copies exist, and clean up | `courier sinks`, then `courier sweep [--id <id> \| --older-days <n> \| --repo <name>] [--dry-run]`. Offer a sweep at the end of any task that injected. |

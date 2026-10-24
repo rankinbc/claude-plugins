@@ -38,7 +38,7 @@ exit 0
 2. **Only names cross to the model.** Every argument is validated as a name before a script runs. Each
    operation prints one `STATUS` line plus one sentence, never a value; output is redacted anyway, and a
    secret-shaped leak turns the result into an error.
-3. **Delivery without exposure.** `run` puts the value in one child environment. `inject` writes only where
+3. **Delivery without exposure.** `run` puts the value in one child environment and masks it in the output Claude sees. `inject` writes only where
    git ignores the file, with an owner-only ACL, and records it. `test` sends one HTTPS request through
    `HttpClient`. No value ever passes to a PowerShell cmdlet as a parameter (host policy can log those).
 4. **Guard hooks that fail closed.** Before every `Bash`, `PowerShell`, `Read`, `Grep`, `Glob`, `Write`, `Edit`
