@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an improvement to one of the plugins.
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Plugin
+      options:
+        - recursive-research
+        - secret-courier
+        - project-scaffolder
+        - a new plugin
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The problem first; a proposed solution is welcome but optional.
+    validations:
+      required: true

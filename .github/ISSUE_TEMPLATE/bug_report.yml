@@ -1,0 +1,39 @@
+name: Bug report
+description: Something in one of the plugins does not work as documented.
+labels: [bug]
+body:
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Plugin
+      options:
+        - recursive-research
+        - secret-courier
+        - project-scaffolder
+        - the marketplace itself
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Plugin version (from /plugin), Claude Code version (claude --version), and your OS.
+      placeholder: "secret-courier 0.2.0, Claude Code 2.1.310, Windows 11"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what you got instead. Paste errors as text.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+  - type: markdown
+    attributes:
+      value: >
+        Never paste a real secret, token or key here, even an expired one. Security problems belong in a
+        private report: see SECURITY.md.
