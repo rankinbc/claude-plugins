@@ -1,0 +1,7 @@
+{
+  "name": "secret-courier",
+  "version": "0.1.0",
+  "description": "Moves secrets between stores and targets by NAME so Claude never sees a value: DPAPI file store and Windows Credential Manager, masked console prompts, ledgered plaintext sinks with a sweep, and fail-closed hooks that keep Bash, PowerShell, Read, Grep, Glob, Write and Edit away from secret files and values.",
+  "author": { "name": "Brian Rankin" },
+  "keywords": ["secrets", "credentials", "hooks", "security", "dpapi", "credential-manager"]
+}

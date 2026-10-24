@@ -1,0 +1,10 @@
+{
+  "description": "Endpoints `courier test <name> <endpoint>` may probe with a named secret. Ids only reach the model; the URL, the auth scheme and the expected status live here (and in ~/.secret-courier/config.json under `endpoints`, which may add or override entries). auth: bearer | basic-pat | header:<Name>.",
+  "endpoints": {
+    "github": { "url": "https://api.github.com/user", "auth": "bearer", "expect": 200 },
+    "azure-devops": { "url": "https://dev.azure.com/{org}/_apis/projects?api-version=7.1", "auth": "basic-pat", "expect": 200, "needs": ["org"] },
+    "openai": { "url": "https://api.openai.com/v1/models", "auth": "bearer", "expect": 200 },
+    "anthropic": { "url": "https://api.anthropic.com/v1/models", "auth": "header:x-api-key", "expect": 200, "headers": { "anthropic-version": "2023-06-01" } },
+    "snyk": { "url": "https://api.snyk.io/v1/user/me", "auth": "token", "expect": 200 }
+  }
+}

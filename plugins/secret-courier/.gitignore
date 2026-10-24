@@ -1,0 +1,26 @@
+# never: secrets and local state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.ppk
+.claude/settings.local.json
+
+# python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# scratch
+temp_*
+*.tmp
+.superpowers/
+output/
