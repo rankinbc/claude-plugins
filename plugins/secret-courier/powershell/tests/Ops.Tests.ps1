@@ -71,6 +71,36 @@ Describe 'ops/*.ps1' {
         $r.out | Should -Not -BeLike "*$($script:FakeValue)*"
     }
 
+    It 'run: a child that prints the value (or its base64) has it redacted (finding 3)' {
+        $b64 = { param($o) [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($o | ConvertTo-Json -Compress))) }
+        $envSpec = & $b64 @{ PESTER_SECRET = "dpapi:$($script:Name)" }
+        # the child echoes the raw value AND its base64 to stdout
+        $cmdSpec = & $b64 @('pwsh', '-NoProfile', '-Command',
+            'Write-Output $env:PESTER_SECRET; Write-Output ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($env:PESTER_SECRET)))')
+        $r = & $script:Run 'secret-run' @('-EnvSpec', $envSpec, '-CommandSpec', $cmdSpec)
+        $r.status | Should -Be 'STATUS exit 0'
+        $r.out | Should -Not -BeLike "*$($script:FakeValue)*"
+        $b64val = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($script:FakeValue))
+        $r.out | Should -Not -BeLike "*$b64val*"
+    }
+
+    It 'inject: a dotenv value with a newline is refused, never written broken (finding 10)' {
+        $repo = Join-Path $TestDrive 'repo-nl'
+        New-Item -ItemType Directory -Path $repo -Force | Out-Null
+        & git -C $repo init -q
+        [IO.File]::WriteAllText((Join-Path $repo '.gitignore'), ".env`n")
+        $nlName = "$($script:Name)-nl"
+        Set-CourierStoreValue -Store dpapi -Name $nlName -Value (ConvertTo-CourierSecureString -Plain "line1`nINJECTED=evil")
+        try {
+            $target = Join-Path $repo '.env'
+            $r = & $script:Run 'secret-inject' @('-Target', $target, '-Format', 'dotenv', '-Map', "API_KEY=dpapi:$nlName")
+            $r.status | Should -BeLike 'STATUS error*newline*'
+            Test-Path -LiteralPath $target | Should -BeFalse
+        } finally {
+            Remove-CourierStoreValue -Store dpapi -Name $nlName | Out-Null
+        }
+    }
+
     It 'inject and sweep: a git-ignored dotenv sink, ledgered, then removed' {
         $repo = Join-Path $TestDrive 'repo-ops'
         New-Item -ItemType Directory -Path $repo -Force | Out-Null

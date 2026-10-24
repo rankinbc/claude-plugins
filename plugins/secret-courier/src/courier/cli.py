@@ -84,6 +84,7 @@ def _log(n: int) -> int:
     import json
 
     from courier.paths import audit_file
+    from courier.scan import sanitize_text
 
     path = audit_file()
     if not path.exists():
@@ -95,7 +96,10 @@ def _log(n: int) -> int:
             e = json.loads(raw)
         except ValueError:
             continue
-        print(f"{e.get('ts', '')}  {e.get('op', ''):<8} {e.get('status', ''):<8} {e.get('detail', '')}")
+        # the audit log records names/statuses only, but redact the detail defensively so `courier log` can
+        # never surface a value even if a future op logged one by mistake (finding 10).
+        detail = sanitize_text(str(e.get("detail", "")))
+        print(f"{e.get('ts', '')}  {e.get('op', ''):<8} {e.get('status', ''):<8} {detail}")
     print(f"{len(entries)} entries from {path} (names and statuses only; values are never logged)")
     return 0
 

@@ -32,6 +32,13 @@ from courier.policy import POLICY
         "C:/r/.ENV",
         "C:/r/.env.",
         "/proc/self/environ",
+        # finding 1/7: tests/fixtures is no longer an allow-anywhere escape hatch
+        r"C:\r\tests\fixtures\m\.env",
+        # ADS suffix does not hide the family (finding 5)
+        "C:/repo/.env::$DATA",
+        "C:/repo/.env:stream",
+        # a bare config.json allow no longer shadows this denied family (finding 1)
+        "C:/Users/x/.docker/config.json",
     ],
 )
 def test_secret_files_are_denied(path):
@@ -46,8 +53,11 @@ def test_secret_files_are_denied(path):
         r"C:\Users\x\.secret-courier\sinks.json",
         r"C:\r\appsettings.json",
         r"C:\r\src\a.cs",
-        r"C:\r\tests\fixtures\m\.env",
         "README.md",
+        # reading the courier home's value-free metadata stays allowed (finding 1)
+        r"C:\Users\x\.secret-courier\config.json",
+        r"C:\Users\x\.secret-courier\guard-policy.json",
+        r"C:\Users\x\.secret-courier\audit.jsonl",
     ],
 )
 def test_ordinary_files_are_allowed(path):

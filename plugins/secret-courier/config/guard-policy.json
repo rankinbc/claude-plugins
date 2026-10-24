@@ -1,5 +1,5 @@
 {
-  "description": "Deny lists shared by the hooks (src/courier/guard*.py) and the PowerShell ops. Regex fragments match case-insensitively against canonical paths (forward slashes, lower-case). A developer overlay at ~/.secret-courier/guard-policy.json may ADD list entries and set `paste`; nothing else is overridable.",
+  "description": "Deny lists shared by the hooks (src/courier/guard*.py) and the PowerShell ops. Regex fragments match case-insensitively against canonical paths (forward slashes, lower-case). A developer overlay at ~/.secret-courier/guard-policy.json may only TIGHTEN the guard: it can ADD entries to denied_file_families, denied_dirs, denied_samples and value_dump_tokens, and set `paste`. It can never add an allow (allowed_files, allowed_dirs), widen the metadata/safe-git/trusted-script/interpreter lists, or change anything else; such keys are ignored (reported by `courier doctor`). allowed_files are anchored repo-relative, not matched anywhere.",
   "denied_file_families": [
     "\\.env(?:\\.[\\w-]+)*",
     "\\.envrc",
@@ -39,11 +39,20 @@
     "authkey.p8", ".git/config", ".claude/.credentials.json", ".docker/config.json", ".kube/config",
     ".aws/credentials", "gh/hosts.yml", "proc/self/environ"
   ],
-  "allowed_files": ["\\.env\\.(?:example|template|sample)", "secrets\\.manifest\\.json", "sinks\\.json", "guard-policy\\.json", "config\\.json", "audit\\.jsonl"],
-  "allowed_dirs": ["tests/fixtures"],
-  "secret_env_names": "(?:[A-Z][A-Z0-9]*_)*(?:PAT|TOKEN|SECRET|PASSWORD|PASSWD|PWD|API_?KEY|ACCESS_KEY|PRIVATE_KEY|CLIENT_SECRET)(?:_[A-Z0-9]+)*",
+  "allowed_files": ["\\.env\\.(?:example|template|sample)", "\\.secret-courier/secrets\\.manifest\\.json", "\\.secret-courier/sinks\\.json", "\\.secret-courier/guard-policy\\.json", "\\.secret-courier/config\\.json", "\\.secret-courier/audit\\.jsonl"],
+  "allowed_dirs": [],
+  "secret_env_names": "(?:[A-Z][A-Z0-9]*_)*(?:PAT|TOKEN|SECRET|PASSWORD|PASSWD|PWD|API_?KEY|ACCESS_KEY|PRIVATE_KEY|CLIENT_SECRET|KEY)(?:_[A-Z0-9]+)*",
   "value_dump_tokens": [
     "Get-CourierSecretValue",
+    "Get-CourierStoreValue",
+    "ConvertFrom-CourierSecureString",
+    "Courier\\.psm1",
+    "CourierSinks\\.psm1",
+    "CourierCred",
+    "CredReadW?",
+    "Unprotect-CmsMessage",
+    "ProtectedData\\]?::Unprotect",
+    "NetworkCredential",
     "SecureStringToBSTR",
     "ConvertFrom-SecureString",
     "PtrToStringBSTR",

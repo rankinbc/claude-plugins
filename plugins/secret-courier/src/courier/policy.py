@@ -32,6 +32,17 @@ _LIST_FIELDS = (
     "trusted_script_dirs",
 )
 
+# An overlay may only TIGHTEN the guard: it can add entries to these deny lists and nothing else. Adding to
+# allowed_files/allowed_dirs (un-denies a file), to metadata_programs/safe_git/trusted_script_dirs/interpreters
+# (treats more commands as safe), or changing secret_env_names would all WEAKEN the shipped policy, so the merge
+# refuses them. This is what SECURITY.md promises: the shipped lists can never be relaxed from the home dir.
+_TIGHTEN_ONLY_FIELDS = (
+    "denied_file_families",
+    "denied_dirs",
+    "denied_samples",
+    "value_dump_tokens",
+)
+
 
 @dataclass(frozen=True)
 class Policy:
@@ -66,12 +77,14 @@ def _merge(base: dict[str, Any], overlay: dict[str, Any]) -> tuple[dict[str, Any
     merged = dict(base)
     problems: list[str] = []
     for key, value in overlay.items():
-        if key in _LIST_FIELDS:
+        if key in _TIGHTEN_ONLY_FIELDS:
             extra = _str_list(value)
             if extra is None:
                 problems.append(f"{key}: not a list of strings; ignored")
                 continue
             merged[key] = list(base.get(key, [])) + [v for v in extra if v not in base.get(key, [])]
+        elif key in _LIST_FIELDS:
+            problems.append(f"{key}: an overlay may only add denies, never relax the guard; ignored")
         elif key == "paste":
             if value in PASTE_MODES:
                 merged[key] = value

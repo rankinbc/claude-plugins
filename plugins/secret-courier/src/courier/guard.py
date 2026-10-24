@@ -19,7 +19,7 @@ import sys
 
 from courier import policy as policy_module
 from courier.guard_bash import check_bash_command, secret_findings
-from courier.guard_paths import check_glob, check_read_path
+from courier.guard_paths import check_glob, check_grep_content, check_read_path
 from courier.guard_write import check_write
 
 INTERNAL_ERROR_MSG = (
@@ -91,6 +91,10 @@ def _read_hook() -> int:
         reason = check_glob(str(ti.get(key) or ""))
         if reason:
             return _block(reason)
+    if "output_mode" in ti:
+        reason = check_grep_content(str(ti.get("path") or ""), str(ti.get("output_mode") or ""))
+        if reason:
+            return _block(reason)
     return 0
 
 
@@ -100,7 +104,8 @@ def _write_hook() -> int:
         return _block(INTERNAL_ERROR_MSG)
     path = str(ti.get("file_path") or ti.get("notebook_path") or "")
     content = ti.get("content") if ti.get("content") is not None else ti.get("new_source")
-    reason = check_write(path, content, ti.get("old_string"), ti.get("new_string"))
+    edits = ti.get("edits") if isinstance(ti.get("edits"), list) else None
+    reason = check_write(path, content, ti.get("old_string"), ti.get("new_string"), edits)
     return _block(reason) if reason else 0
 
 

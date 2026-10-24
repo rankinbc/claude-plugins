@@ -137,6 +137,9 @@ function Write-CourierSink {
             $present = $lines | Where-Object { $_ -match "^\s*$([regex]::Escape($k))\s*=" }
             if ($present -and -not $Replace) { throw "$k already set in $path; pass -Replace" }
             $v = ConvertFrom-CourierSecureString -Secure $Entries[$k]
+            # a CR/LF in a value would break the dotenv line (or inject another key); dotenv has no portable
+            # multi-line quoting, so refuse it rather than write a corrupt/ambiguous file.
+            if ($v -match "[\r\n]") { $v = $null; throw "the value for '$k' contains a newline, which cannot be written to a dotenv file; use json or user-secrets" }
             $line = "$k=$v"
             $replaced = $false
             $lines = @($lines | ForEach-Object { if ($_ -match "^\s*$([regex]::Escape($k))\s*=") { $replaced = $true; $line } else { $_ } })

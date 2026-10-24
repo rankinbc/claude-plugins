@@ -39,6 +39,14 @@ _INSTEAD = (
     "gives a program the value without printing it (secret-courier)."
 )
 SECRET_FILE_MSG = "Blocked: that command reads a secret-bearing file, and Claude handles secret NAMES only. " + _INSTEAD
+RECURSIVE_SEARCH_MSG = (
+    "Blocked: that command searches a directory tree, which would read any secret-bearing file in it "
+    "(e.g. .env, id_rsa). Point it at specific non-secret files instead. " + _INSTEAD
+)
+OVERSIZE_MSG = (
+    "Blocked: the command is too large for the guard to scan safely ({size} bytes). Split it into smaller steps "
+    "(secret-courier)."
+)
 SCRIPT_FILE_MSG = (
     "Blocked: the script that command runs {what}. Claude never runs a script that prints or decrypts secret values. "
     + _INSTEAD
@@ -48,8 +56,13 @@ EXPOSES_MSG = "Blocked: that command exposes secret values ({what}), and Claude 
 _SECRET_NAMES = POLICY.secret_env_names
 _DENIED_TOKEN_RE = re.compile(r"(?i)(?<![\w-])(?:" + "|".join(POLICY.value_dump_tokens) + r")(?![\w-])")
 _ENV_REF_RE = re.compile(
-    rf"(?:\$(?:env:|\{{env:)?\{{?{_SECRET_NAMES}\b|%{_SECRET_NAMES}%|(?i:env:)[\\/]?{_SECRET_NAMES}\b|"
-    rf"(?:GetEnvironmentVariable|environ(?:\.get)?|getenv)\s*[(\[]\s*[\"']{_SECRET_NAMES}\b)"
+    r"(?i)(?:"
+    rf"\$(?:env:|\{{env:)?\{{?{_SECRET_NAMES}\b"
+    rf"|%{_SECRET_NAMES}%"
+    rf"|env:[\\/]?{_SECRET_NAMES}\b"
+    rf"|(?:GetEnvironmentVariable|environ(?:\.get)?|getenv)\s*[(\[]\s*[\"']{_SECRET_NAMES}\b"
+    rf"|process\.env(?:\.|\[\s*[\"']){_SECRET_NAMES}\b"
+    r")"
 )
 _ENV_DUMP_RE = re.compile(
     r"(?i)(?<![\w-])(?:gci|ls|dir|get-childitem|get-item|gi|cat|type|get-content)\s+(?:-\w+\s+)*[\"']?env:|"
@@ -96,8 +109,17 @@ _SCRIPT_SUFFIXES = (
     ".bat",
 )
 _MAX_SCRIPT_BYTES = 256 * 1024
+# A real command is a few KB at most; cap well below the point where a pathological input makes the scanner slow,
+# and fail closed with a clear message (finding 8).
+_MAX_COMMAND_BYTES = 64 * 1024
 _MAX_DEPTH = 3
 _FLOW_OPS = frozenset({"|", "$(", "`"})
+_RECURSIVE_SEARCH = frozenset({"grep", "rg", "ag", "ack", "findstr"})
+_CONTENT_READERS = frozenset(
+    {"cat", "type", "more", "less", "head", "tail", "bat", "nl", "od", "xxd", "strings", "get-content", "gc"}
+)
+_BRACKET_RE = re.compile(r"\[([^\]/]{1,20})\]")
+_SWEEP_GLOB_RE = re.compile(r"^\*+(?:\.\*+)?$")
 
 
 def secret_findings(text: str) -> list[str]:
@@ -251,8 +273,77 @@ def _path_candidates(segment: str) -> list[str]:
     return out
 
 
+def _shell_collapsed(segment: str) -> set[str]:
+    """Variants of a segment with shell quoting collapsed (``'.e''nv'`` -> ``.env``, ``"$HOME/.ss"h`` ->
+    ``$HOME/.ssh``) and a single bracket character class expanded (``.[e]nv`` -> ``.env``), so a denied name that
+    is quote-split or bracket-written is still seen. Not a full shell parser, but it closes the obvious tricks."""
+    collapsed = segment.replace("'", "").replace('"', "")
+    variants = {collapsed}
+    m = _BRACKET_RE.search(collapsed)
+    if m and "-" not in m.group(1):
+        for ch in m.group(1):
+            variants.add(collapsed[: m.start()] + ch + collapsed[m.end() :])
+    return variants
+
+
+def _denied_candidates(segment: str) -> list[str]:
+    cands = list(_path_candidates(segment))
+    for variant in _shell_collapsed(segment):
+        if variant != segment:
+            cands.extend(_path_candidates(variant))
+    return cands
+
+
 def _touches_denied_path(segment: str) -> bool:
-    return any(is_denied_path(c) for c in _path_candidates(segment))
+    return any(is_denied_path(c) for c in _denied_candidates(segment))
+
+
+def _sweeps_dir(segment: str) -> bool:
+    """A content-reading program handed a bare wildcard that enumerates a whole directory (``cat *``,
+    ``Get-Content *``) would read any secret file sitting in it."""
+    prog, _ = _program(segment)
+    if not prog or _prog_name(prog) not in _CONTENT_READERS:
+        return False
+    for tok in _path_candidates(segment):
+        t = tok.strip().strip("\"'").replace("\\", "/")
+        comps = [c for c in t.split("/") if c and c != "."]
+        if comps and _SWEEP_GLOB_RE.fullmatch(comps[-1]):
+            return True
+    return False
+
+
+def _is_unscoped_tree(token: str) -> bool:
+    """True for a target that walks a whole tree: the working directory, a drive/home root, or a glob."""
+    pl = token.strip().strip("\"'").replace("\\", "/")
+    return (
+        pl in ("", ".", "./", "..", "../", "~", "~/", "/")
+        or bool(re.fullmatch(r"[a-z]:/?", pl.lower()))  # a drive root
+        or any(c in pl for c in "*?[")  # a glob target enumerates a directory
+    )
+
+
+def _recursive_search_reason(segment: str) -> str | None:
+    """A recursive content search (``grep -r``, ``rg`` which recurses by default, ``findstr /s``, ``ag``, ``ack``)
+    that walks a directory tree is denied: it would read every secret-bearing file under it."""
+    prog, args = _program(segment)
+    name = _prog_name(prog) if prog else ""
+    if name not in _RECURSIVE_SEARCH:
+        return None
+    flags = [a for a in args if a.startswith(("-", "/"))]
+    positionals = [a for a in args if not a.startswith(("-", "/"))]
+    if name == "grep" and not any("r" in f.lower().lstrip("-") for f in flags):
+        return None
+    if name == "findstr" and not any(f.lower() == "/s" for f in flags):
+        return None
+    # the first positional is the pattern; the rest are the search paths. Deny an UNSCOPED tree walk (the working
+    # directory, a drive/home root, or a bare glob) which would read any secret file under it; a search scoped to
+    # a named directory (`grep -r TODO src`) is left to the developer's own scoping (see SECURITY.md limits).
+    paths = positionals[1:] if positionals else []
+    if not paths:  # no path -> the working-directory tree
+        return RECURSIVE_SEARCH_MSG
+    if any(_is_unscoped_tree(p) for p in paths):
+        return RECURSIVE_SEARCH_MSG
+    return None
 
 
 def _glob_components(token: str) -> list[str]:
@@ -306,7 +397,22 @@ def _encoded_reason(command: str) -> str | None:
 def _dump_reason(segment: str) -> str | None:
     prog, args = _program(segment)
     name = _prog_name(prog) if prog else ""
-    if name in {"env", "set", "export"} and not args:
+    if not name:
+        return None
+    # env / printenv with no command to run (only flags, e.g. `env -0`) dumps the environment
+    if name in {"env", "printenv"} and all(a.startswith("-") for a in args):
+        return EXPOSES_MSG.format(what=f"{name} dumps the environment")
+    # `set` dumps with no args, or when every arg is a bare name filter and none is a shell option: `set`,
+    # `set G`, `cmd /c set G`. `set -e`, `set -euo pipefail` (shell options) and `set FOO=bar` are not dumps.
+    if name == "set":
+        bare = [a for a in args if not a.startswith(("-", "+"))]
+        if not args or (bare == args and not any(_ENV_ASSIGN_RE.match(a) for a in bare)):
+            return EXPOSES_MSG.format(what="set dumps the environment")
+    # declare / typeset / export dump with no args or a print flag (`declare -p`, `export -p`, `declare -x`);
+    # `declare -A map`, `export FOO` (mark for export) and `export X=1` are not dumps.
+    if name in {"declare", "typeset", "export"} and (
+        not args or any(re.fullmatch(r"-[a-z]*[px][a-z]*", a.lower()) for a in args)
+    ):
         return EXPOSES_MSG.format(what=f"{name} dumps the environment")
     return None
 
@@ -342,18 +448,34 @@ def _script_arg(segment: str) -> str | None:
         if any(a.lower() in {"-command", "-c"} for a in args):
             return None
         cand = _pwsh_script(args)
-    elif name in _SHELLS or name in _INTERPRETERS:
-        cand = ""
+        return cand if cand and cand.lower().endswith(".ps1") else None
+    if name in _SHELLS or name in _INTERPRETERS:
         for a in args:
-            if a in {"-m", "-c", "-e", "-r"}:
+            if a in {"-m", "-c", "-e", "-r", "-p", "--eval"}:
                 return None
             if a.startswith("-") or a.lower() in {"run", "eval"}:
                 continue
-            cand = a
-            break
-    else:
+            # an interpreter runs its first positional whatever the extension (`python x.txt` runs x.txt)
+            return a
         return None
-    return cand if cand and cand.lower().endswith(_SCRIPT_SUFFIXES) else None
+    return None
+
+
+def _direct_script(segment: str) -> str | None:
+    """A script executed directly (``./x.ps1``, ``./x.py``) or dot-sourced (``. ./x.ps1``, ``source x.sh``),
+    with no interpreter word in front, so ``_script_arg`` does not see it."""
+    prog, args = _program(segment)
+    if not prog:
+        return None
+    name = _prog_name(prog)
+    if prog == "." or name == "source":
+        for a in args:
+            if not a.startswith("-"):
+                return a
+        return None
+    if prog.lower().endswith(_SCRIPT_SUFFIXES) and any(ch in prog for ch in "/\\"):
+        return prog
+    return None
 
 
 def _text_reason(text: str) -> str | None:
@@ -375,8 +497,13 @@ def _scan_script_file(path: str) -> str | None:
         return None
     try:
         p = os.path.expanduser(path.strip().strip("\"'"))
-        if not os.path.isfile(p) or os.path.getsize(p) > _MAX_SCRIPT_BYTES:
+        if not os.path.isfile(p):
             return None
+        if os.path.getsize(p) > _MAX_SCRIPT_BYTES:
+            # fail closed: a script too large to scan is refused, not waved through
+            return SCRIPT_FILE_MSG.format(
+                what=f"is larger than {_MAX_SCRIPT_BYTES // 1024} KB, too large for the guard to scan"
+            )
         with open(p, encoding="utf-8", errors="replace") as fh:
             text = fh.read()
     except (OSError, ValueError):
@@ -389,6 +516,8 @@ def check_bash_command(command: str, _depth: int = 0) -> str | None:
     """Reason to block, or None."""
     if not command or _depth > _MAX_DEPTH:
         return None
+    if len(command) > _MAX_COMMAND_BYTES:
+        return OVERSIZE_MSG.format(size=len(command))
     rules = secret_findings(command)
     if rules:
         return SECRET_VALUE_MSG.format(rules=", ".join(rules))
@@ -406,16 +535,21 @@ def check_bash_command(command: str, _depth: int = 0) -> str | None:
         reason = _dump_reason(segment)
         if reason:
             return reason
+        reason = _recursive_search_reason(segment)
+        if reason:
+            return reason
         inner = _inner_command(segment)
         if inner:
             reason = check_bash_command(inner, _depth + 1)
             if reason:
                 return reason
-        script = _script_arg(segment)
+        script = _script_arg(segment) or _direct_script(segment)
         if script:
             reason = _scan_script_file(script)
             if reason:
                 return reason
+        if _sweeps_dir(segment):
+            return SECRET_FILE_MSG
         if _touches_denied_path(segment) or _glob_touches_denied(segment):
             if not _metadata_only(segment):
                 return SECRET_FILE_MSG

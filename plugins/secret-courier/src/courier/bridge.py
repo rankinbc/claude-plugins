@@ -17,6 +17,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from courier.paths import config_file, plugin_root
 from courier.scan import redact
@@ -200,6 +201,17 @@ def prompt(
     return _guard("prompt", go)
 
 
+def _endpoint_allowed_hosts(ep: dict[str, Any], template_url: str) -> set[str]:
+    """The hosts a probe may reach: the endpoint's declared ``allow_hosts`` plus the literal host of the template
+    URL (when that host has no placeholder). An endpoint whose template host is itself a ``{param}`` must declare
+    ``allow_hosts`` or it can reach nowhere; this is what stops a param from being injected into the host."""
+    hosts = {str(h).lower() for h in ep.get("allow_hosts", []) if isinstance(h, str) and h}
+    th = urlsplit(template_url).hostname
+    if th and "{" not in th:
+        hosts.add(th.lower())
+    return hosts
+
+
 def test(name: str, endpoint: str, params: dict[str, str] | None = None, runner: Runner | None = None) -> Result:
     def go() -> Result:
         check_name(name, "name")
@@ -207,7 +219,8 @@ def test(name: str, endpoint: str, params: dict[str, str] | None = None, runner:
         ep = eps.get(endpoint)
         if ep is None:
             raise Refused(f"endpoint id not configured (known: {', '.join(sorted(eps)) or 'none'})")
-        url = str(ep["url"])
+        template = str(ep["url"])
+        url = template
         for key in ep.get("needs", []):
             val = (params or {}).get(key)
             if not val or not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", val):
@@ -215,6 +228,15 @@ def test(name: str, endpoint: str, params: dict[str, str] | None = None, runner:
             url = url.replace("{" + key + "}", val)
         if "{" in url:
             raise Refused("endpoint url still has an unfilled placeholder")
+        # the substituted URL must be https and its host must be the endpoint's declared host, so a named secret
+        # can only ever be sent to the shipped/allow-listed host, never to one a {param} smuggled in (finding 2).
+        parts = urlsplit(url)
+        if parts.scheme != "https":
+            raise Refused("endpoint url must be https")
+        allowed = _endpoint_allowed_hosts(ep, template)
+        host = (parts.hostname or "").lower()
+        if not host or host not in allowed:
+            raise Refused("endpoint host is not on the endpoint's allowlist")
         args = [
             name,
             "-Url",
@@ -287,7 +309,11 @@ def sweep(
 
 
 def run_command(env_map: dict[str, str], command: list[str], runner: Runner | None = None) -> Result:
-    """Run ``command`` with the named values in its environment only; the child inherits the console."""
+    """Run ``command`` with the named values in its environment only. The child's stdout/stderr are CAPTURED, not
+    inherited: the op masks every injected value (and its base64 / url-encoded / reversed forms) before the bridge
+    redacts the output again and relays it, so ``courier run ... -- echo $SECRET`` cannot print the value to the
+    model. Residual limit: a child that transforms the value (hashes, splits, re-encodes) can still emit it; see
+    SECURITY.md."""
 
     def go() -> Result:
         if not command:
@@ -301,7 +327,7 @@ def run_command(env_map: dict[str, str], command: list[str], runner: Runner | No
         # both specs travel base64-encoded so the child's own flags never bind to the script's parameters
         env_b64 = base64.b64encode(json.dumps(env_map).encode("utf-8")).decode("ascii")
         cmd_b64 = base64.b64encode(json.dumps(list(command)).encode("utf-8")).decode("ascii")
-        return _run("run", "secret-run", ["-EnvSpec", env_b64, "-CommandSpec", cmd_b64], runner, capture=False)
+        return _run("run", "secret-run", ["-EnvSpec", env_b64, "-CommandSpec", cmd_b64], runner, capture=True)
 
     return _guard("run", go)
 
