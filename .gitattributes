@@ -1,0 +1,3 @@
+# Normalize line endings in the repository. Each plugin folder carries its own
+# .gitattributes with its eol rules (e.g. LF everywhere, CRLF for .cmd/.ps1).
+* text=auto

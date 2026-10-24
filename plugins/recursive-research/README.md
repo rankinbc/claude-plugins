@@ -6,8 +6,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rankinbc/RecursiveResearch/actions/workflows/tests.yml"><img src="https://github.com/rankinbc/RecursiveResearch/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
-  <a href="https://github.com/rankinbc/RecursiveResearch/releases"><img src="https://img.shields.io/github/v/release/rankinbc/RecursiveResearch?include_prereleases&label=release" alt="release"></a>
+  <a href="https://github.com/rankinbc/claude-plugins/actions/workflows/recursive-research.yml"><img src="https://github.com/rankinbc/claude-plugins/actions/workflows/recursive-research.yml/badge.svg" alt="tests"></a>
+  <a href="https://github.com/rankinbc/claude-plugins/releases?q=recursive-research--v&expanded=true"><img src="https://img.shields.io/github/v/release/rankinbc/claude-plugins?filter=recursive-research--v*&include_prereleases&label=release" alt="release"></a>
   <img src="https://img.shields.io/badge/python-3.9%2B-blue" alt="Python 3.9 or later">
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="no dependencies">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
@@ -26,13 +26,13 @@ checks the words are there.
 You need [Claude Code](https://claude.com/claude-code) with web search, and
 Python 3.9 or later. There is nothing else to install.
 
-**1. Add this repository as a plugin source.** Inside Claude Code:
+**1. Add the rankinbc marketplace as a plugin source.** Inside Claude Code:
 
-    /plugin marketplace add rankinbc/RecursiveResearch
+    /plugin marketplace add rankinbc/claude-plugins
 
 **2. Install the plugin:**
 
-    /plugin install recursive-research@recursive-research
+    /plugin install recursive-research@rankinbc
 
 **3. Run it**, in any project folder:
 
@@ -198,7 +198,7 @@ The full account is in [`docs/end-to-end-run.md`](docs/end-to-end-run.md).
 
 ## Everyday use
 
-Here `rr.py` stands for `python /path/to/RecursiveResearch/scripts/rr.py`. Run
+Here `rr.py` stands for `python /path/to/recursive-research/scripts/rr.py`. Run
 these from the folder that holds your `research` folder. Claude runs them for
 you during a session; they are also there for you to use directly.
 
@@ -281,13 +281,13 @@ unknown. The leaves hold exact values, formulas and algorithms.
 
 **From Claude Code** (shown above):
 
-    /plugin marketplace add rankinbc/RecursiveResearch
-    /plugin install recursive-research@recursive-research
+    /plugin marketplace add rankinbc/claude-plugins
+    /plugin install recursive-research@rankinbc
 
 **From a terminal**, the same thing:
 
-    claude plugin marketplace add rankinbc/RecursiveResearch
-    claude plugin install recursive-research@recursive-research
+    claude plugin marketplace add rankinbc/claude-plugins
+    claude plugin install recursive-research@rankinbc
 
 **Check it installed:**
 
@@ -298,22 +298,24 @@ You should see `recursive-research`. In a new Claude Code session, typing
 
 **Update to the latest version:**
 
-    claude plugin marketplace update recursive-research
-    claude plugin update recursive-research@recursive-research
+    claude plugin marketplace update rankinbc
+    claude plugin update recursive-research@rankinbc
 
 Then start a new Claude Code session, which is when the update takes effect.
 
 **Remove it:**
 
-    claude plugin uninstall recursive-research@recursive-research
-    claude plugin marketplace remove recursive-research
+    claude plugin uninstall recursive-research@rankinbc
 
-Removing the plugin does not touch any `research` folders it created.
+Removing the plugin does not touch any `research` folders it created. To drop
+the whole marketplace as well (this also removes the other rankinbc plugins):
 
-**Try it without installing**, from a clone of this repository:
+    claude plugin marketplace remove rankinbc
 
-    git clone https://github.com/rankinbc/RecursiveResearch
-    claude --plugin-dir RecursiveResearch
+**Try it without installing**, from a clone of the marketplace repository:
+
+    git clone https://github.com/rankinbc/claude-plugins
+    claude --plugin-dir claude-plugins/plugins/recursive-research
 
 **If something goes wrong**
 
@@ -323,7 +325,7 @@ Removing the plugin does not touch any `research` folders it created.
 | A stage stops with `SEARCH_UNAVAILABLE` | Web search is off or blocked in this session. Enable it and run the skill again; it resumes where it stopped |
 | The command is not offered after installing | Start a new Claude Code session. Plugins load at startup |
 
-## What is in the repository
+## What is in this plugin folder
 
 This is a skill, not a standalone program. It runs inside Claude Code, which
 supplies the model, the agents and the web search.
@@ -338,10 +340,13 @@ supplies the model, the agents and the web search.
 
 ## Development
 
+From `plugins/recursive-research` in the
+[claude-plugins](https://github.com/rankinbc/claude-plugins) repository:
+
     python -m unittest discover -s tests
 
 The tests run on Windows, macOS and Linux, on Python 3.9 and 3.13, on every
-push.
+push that touches this plugin.
 
 - Design: [`docs/specs/2026-10-04-recursive-research-design.md`](docs/specs/2026-10-04-recursive-research-design.md)
 - First real run: [`docs/end-to-end-run.md`](docs/end-to-end-run.md)

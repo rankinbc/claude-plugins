@@ -9,8 +9,8 @@ Claude handles secret NAMES and locations. The ops scripts move VALUES. Full con
 plugin root.
 
 The CLI is `scripts\courier.cmd` under the plugin root. Installed from the marketplace that root is
-`%USERPROFILE%\.claude\plugins\cache\secret-courier\secret-courier\<version>`; from a checkout it is the repo
-folder. Run it through the Bash tool as `"<plugin root>/scripts/courier.cmd" <command> ...`. Every command
+`%USERPROFILE%\.claude\plugins\cache\rankinbc\secret-courier\<version>`; from a checkout it is the
+`plugins\secret-courier` folder. Run it through the Bash tool as `"<plugin root>/scripts/courier.cmd" <command> ...`. Every command
 prints a plain sentence saying what happened to the value and where it is now, then one status line (`found
 dpapi`, `missing`, `stored credman`, `error ...`), and never a value. **Relay that sentence to the developer**
 in your own words or verbatim; it is how they know the operation was safe. `courier log` shows what the plugin

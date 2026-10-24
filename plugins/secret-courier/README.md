@@ -1,7 +1,7 @@
-# Secret-Courier-Claude
+# secret-courier
 
-[![CI](https://github.com/rankinbc/Secret-Courier-Claude/actions/workflows/ci.yml/badge.svg)](https://github.com/rankinbc/Secret-Courier-Claude/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/rankinbc/Secret-Courier-Claude?filter=secret-courier--v*&label=release)](https://github.com/rankinbc/Secret-Courier-Claude/releases)
+[![CI](https://github.com/rankinbc/claude-plugins/actions/workflows/secret-courier.yml/badge.svg)](https://github.com/rankinbc/claude-plugins/actions/workflows/secret-courier.yml)
+[![Release](https://img.shields.io/github/v/release/rankinbc/claude-plugins?filter=secret-courier--v*&label=release)](https://github.com/rankinbc/claude-plugins/releases?q=secret-courier--v&expanded=true)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python 3.11+, stdlib only](https://img.shields.io/badge/python-3.11%2B%20stdlib%20only-3776AB)
 ![PowerShell 7](https://img.shields.io/badge/powershell-7-5391FE)
@@ -172,7 +172,7 @@ Refusals say what to do instead: `courier exists <name>` to locate, `courier run
 
 - `courier doctor` runs a copy of the guard with an empty `PATH` and proves it refuses the call.
 - The hook path is standard-library Python with no venv and no pip; a test diffs `sys.modules` to keep it so.
-- CI runs `courier scan . --fail-on-findings` against the repository itself; fixtures build secret-shaped
+- CI runs `courier scan . --fail-on-findings` against the plugin folder itself; fixtures build secret-shaped
   strings at runtime.
 - 156 pytest and 17 Pester cases on `windows-latest`, Python 3.11 and 3.13; no test touches the network.
 - The policy overlay is add-only. `SECURITY.md` lists the limits: what a text-level guard cannot see, what a
@@ -180,12 +180,17 @@ Refusals say what to do instead: `courier exists <name>` to locate, `courier run
 
 ## Install
 
-Windows 10/11, PowerShell 7, Python 3.11+, Claude Code 2.1.295+.
+Windows 10/11, PowerShell 7, Python 3.11+, Claude Code 2.1.295+. Windows only.
+
+Inside Claude Code:
 
 ```
-claude plugin marketplace add rankinbc/Secret-Courier-Claude
-claude plugin install secret-courier@secret-courier
+/plugin marketplace add rankinbc/claude-plugins
+/plugin install secret-courier@rankinbc
 ```
+
+Or from a terminal: `claude plugin marketplace add rankinbc/claude-plugins` then
+`claude plugin install secret-courier@rankinbc`.
 
 Restart Claude Code. Hooks, the `/courier` command and the `secret-courier` skill are registered; the first
 line of the next session confirms it: `secret-courier 0.1.0: guard hooks active (Python 3.13, paste policy
@@ -218,6 +223,8 @@ advise).` Run `/courier doctor` to check every probe. Nothing is written to your
 | `powershell/Courier.psm1`, `CourierSinks.psm1`, `ops/*.ps1` | the only code that touches a value |
 | `config/guard-policy.json`, `config/endpoints.json` | deny lists, endpoint catalogue |
 | `skills/secret-courier/SKILL.md`, `commands/courier.md` | how Claude uses it |
+
+From `plugins/secret-courier` in the [claude-plugins](https://github.com/rankinbc/claude-plugins) repository:
 
 ```
 python -m pip install -e ".[dev]" && python -m pytest -q
