@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from courier import policy
+from courier.doctor import hook_command_line
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "scripts" / "courier_entry.py"
@@ -27,13 +28,13 @@ def test_hooks_cover_every_tool_and_block_on_failure():
     for entry in _hooks()["PreToolUse"]:
         for h in entry["hooks"]:
             assert h.get("onFailure") == "block", entry["matcher"]
-            mode = next(f for f in ("--write-hook", "--read-hook", "--bash-hook") if f in h["command"])
+            mode = next(f for f in ("--write-hook", "--read-hook", "--bash-hook") if f in hook_command_line(h))
             covered.setdefault(mode, set()).update(entry["matcher"].split("|"))
     assert {"Bash", "PowerShell"} <= covered["--bash-hook"]
     assert {"Read", "Grep", "Glob"} <= covered["--read-hook"]
     assert {"Write", "Edit", "NotebookEdit"} <= covered["--write-hook"]
     prompt = [h for e in _hooks()["UserPromptSubmit"] for h in e["hooks"]]
-    assert prompt and all("--prompt-hook" in h["command"] and "onFailure" not in h for h in prompt)
+    assert prompt and all("--prompt-hook" in hook_command_line(h) and "onFailure" not in h for h in prompt)
 
 
 def test_guard_chain_is_stdlib_only():

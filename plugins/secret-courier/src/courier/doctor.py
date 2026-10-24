@@ -51,6 +51,11 @@ def probe_pwsh() -> Probe:
     return Probe("pwsh", OK, exe)
 
 
+def hook_command_line(hook: dict) -> str:
+    """The command a hook runs, in shell form or exec form (command plus args)."""
+    return " ".join([hook.get("command", ""), *hook.get("args", [])])
+
+
 def probe_hooks(root: Path | None = None) -> Probe:
     root = root or plugin_root()
     path = root / "hooks" / "hooks.json"
@@ -66,7 +71,7 @@ def probe_hooks(root: Path | None = None) -> Probe:
         h
         for e in hooks.get("PreToolUse", [])
         for h in e.get("hooks", [])
-        if "courier-guard.cmd" in h.get("command", "")
+        if "courier-guard.cmd" in hook_command_line(h)
     ]
     matchers = {m for e in hooks.get("PreToolUse", []) for m in e.get("matcher", "").split("|")}
     for tool in ("Bash", "PowerShell", "Read", "Grep", "Glob", "Write", "Edit", "NotebookEdit"):
@@ -75,7 +80,7 @@ def probe_hooks(root: Path | None = None) -> Probe:
     if any(h.get("onFailure") != "block" for h in guards):
         problems.append('a guard lacks "onFailure": "block"')
     if not any(
-        "--prompt-hook" in h.get("command", "") for e in hooks.get("UserPromptSubmit", []) for h in e.get("hooks", [])
+        "--prompt-hook" in hook_command_line(h) for e in hooks.get("UserPromptSubmit", []) for h in e.get("hooks", [])
     ):
         problems.append("no UserPromptSubmit paste hook")
     if problems:

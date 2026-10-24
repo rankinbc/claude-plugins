@@ -41,7 +41,8 @@ Sources that are never destinations: `env:` (an exported variable would be reada
 
 ## 3. The guard is a boundary, not a courtesy
 
-`hooks/hooks.json` runs `scripts/courier-guard.cmd` before every `Bash`, `PowerShell`, `Read`, `Grep`, `Glob`,
+`hooks/hooks.json` starts `cmd.exe /d /c scripts\courier-guard.cmd` directly (exec form, no shell, so it
+behaves the same with or without Git Bash) before every `Bash`, `PowerShell`, `Read`, `Grep`, `Glob`,
 `Write`, `Edit` and `NotebookEdit` call, and on every prompt. The guard is stdlib-only Python 3.11+ with no
 venv: the wrapper finds an interpreter (`COURIER_PYTHON`, `py -3`, `python`, `python3`) and runs
 `scripts/courier_entry.py`. It fails closed: no interpreter, an import error, a non-zero exit, a timeout or a
@@ -119,8 +120,8 @@ never inject a different host.
   `SecureString`, file writes use `[IO.File]`, HTTP uses `HttpClient`, Credential Manager uses P/Invoke, and the
   `courier run` child reads the value from its own environment, never a logged argument. `courier doctor` warns
   when module logging is on.
-- Windows only in this version (DPAPI, Credential Manager, the `.cmd` wrappers). On macOS/Linux the `.cmd` hooks
-  do not run: the plugin cannot protect those sessions, so it must be disabled there (`/plugin`). The guard is
+- Windows only in this version (DPAPI, Credential Manager, the `.cmd` wrappers). On macOS/Linux `cmd.exe` does not
+  exist, so every guarded tool call is refused until the plugin is disabled there (`/plugin`). The guard is
   not a cross-platform boundary; treat a non-Windows host as unprotected.
 
 ## Reporting

@@ -6,8 +6,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/courier-session.cmd\"",
-            "timeout": 30
+            "command": "cmd.exe",
+            "timeout": 30,
+            "args": [
+              "/d",
+              "/c",
+              "${CLAUDE_PLUGIN_ROOT}\\scripts\\courier-session.cmd"
+            ]
           }
         ]
       }
@@ -18,9 +23,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/courier-guard.cmd\" --bash-hook",
+            "command": "cmd.exe",
             "timeout": 60,
-            "onFailure": "block"
+            "onFailure": "block",
+            "args": [
+              "/d",
+              "/c",
+              "${CLAUDE_PLUGIN_ROOT}\\scripts\\courier-guard.cmd",
+              "--bash-hook"
+            ]
           }
         ]
       },
@@ -29,9 +40,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/courier-guard.cmd\" --read-hook",
+            "command": "cmd.exe",
             "timeout": 60,
-            "onFailure": "block"
+            "onFailure": "block",
+            "args": [
+              "/d",
+              "/c",
+              "${CLAUDE_PLUGIN_ROOT}\\scripts\\courier-guard.cmd",
+              "--read-hook"
+            ]
           }
         ]
       },
@@ -40,9 +57,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/courier-guard.cmd\" --write-hook",
+            "command": "cmd.exe",
             "timeout": 60,
-            "onFailure": "block"
+            "onFailure": "block",
+            "args": [
+              "/d",
+              "/c",
+              "${CLAUDE_PLUGIN_ROOT}\\scripts\\courier-guard.cmd",
+              "--write-hook"
+            ]
           }
         ]
       }
@@ -52,8 +75,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/courier-guard.cmd\" --prompt-hook",
-            "timeout": 60
+            "command": "cmd.exe",
+            "timeout": 60,
+            "args": [
+              "/d",
+              "/c",
+              "${CLAUDE_PLUGIN_ROOT}\\scripts\\courier-guard.cmd",
+              "--prompt-hook"
+            ]
           }
         ]
       }

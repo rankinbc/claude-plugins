@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from courier.doctor import hook_command_line
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -24,6 +26,6 @@ def test_session_start_prints_one_system_message():
 
 def test_session_start_hook_is_wired():
     hooks = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))["hooks"]
-    commands = [h["command"] for e in hooks["SessionStart"] for h in e["hooks"]]
+    commands = [hook_command_line(h) for e in hooks["SessionStart"] for h in e["hooks"]]
     assert any("courier-session.cmd" in c for c in commands)
     assert (ROOT / "scripts" / "courier-session.cmd").exists()
