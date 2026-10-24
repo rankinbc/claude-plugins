@@ -237,6 +237,8 @@ class BudgetTests(FetchCase):
         self.assertLess(time.monotonic() - started, 2)
         self.assertEqual((result["unchecked"], result["downgraded"]), (3, 0))
         self.assertEqual(path.read_text(encoding="utf-8"), text)
+        while verify._remaining() > 0:  # a timed wait can return a tick early on Windows
+            time.sleep(0.02)
         self.assertIn(verify.OUT_OF_TIME, verify.check(self.ws, {"quote": QUOTE, "source_url": "https://e.example/9"}))
 
 
