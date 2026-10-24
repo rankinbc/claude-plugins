@@ -17,10 +17,15 @@
     Without it, keys that are already set are shown and skipped.
 
 .EXAMPLE
-    .\scripts\secure\Set-ProjectSecrets.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\secure\Set-ProjectSecrets.ps1
+
+    Windows PowerShell 5.1 (ships with Windows). -ExecutionPolicy Bypass is needed
+    because the default Windows client policy refuses to run .ps1 files.
 
 .EXAMPLE
-    .\scripts\secure\Set-ProjectSecrets.ps1 -Force
+    pwsh -File scripts/secure/Set-ProjectSecrets.ps1 -Force
+
+    PowerShell 7 (Windows, macOS, Linux); -Force re-prompts every key.
 #>
 [CmdletBinding()]
 param(
@@ -165,7 +170,7 @@ foreach ($key in $existing.Keys) {
 
 $lines = New-Object System.Collections.Generic.List[string]
 $lines.Add('# Written by scripts/secure/Set-ProjectSecrets.ps1')
-$lines.Add('# Gitignored and deny-listed in .claude/settings.local.json. Never commit this file.')
+$lines.Add('# Gitignored and deny-listed in .claude/settings.json. Never commit this file.')
 $lines.Add('')
 foreach ($key in $resolved.Keys) { $lines.Add("$key=$($resolved[$key])") }
 

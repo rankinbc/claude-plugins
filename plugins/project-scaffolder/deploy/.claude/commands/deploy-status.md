@@ -34,12 +34,15 @@ Only when `.env.example` exists at the project root. If it doesn't, this project
 Run the readiness script and use its output verbatim:
 
 ```bash
+# Windows (works with Windows PowerShell 5.1 or PowerShell 7; bypasses the default script-execution policy for this one call)
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/secure/Test-Readiness.ps1
+# macOS / Linux (needs PowerShell 7)
 pwsh -File scripts/secure/Test-Readiness.ps1
 ```
 
 It prints one line per declared key — `set`, `empty`, or `missing` — and **never prints a value**. Exit code 0 means everything is configured; 1 means something is unset.
 
-- If the script can't run (no `pwsh` on PATH, script missing), report configuration state as **unknown** and tell the user to run it themselves. Do not fall back to reading `.env` — it's deny-listed, and that's deliberate.
+- If the script can't run (no `powershell`/`pwsh` on PATH, script missing), report configuration state as **unknown** and tell the user to run it themselves. Do not fall back to reading `.env` — it's deny-listed, and that's deliberate.
 - Never read `.env`, and never quote a value out of `.env.example`. Key names only.
 
 ### 4a. Render the pre-built / partial-build report

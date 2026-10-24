@@ -82,7 +82,7 @@ matplotlib>=3.8
 From the project root:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 # Drop data file in data/<source_name>/
 python components/<component_name>/analysis.py
 # Report and charts appear in output/<component_name>/<date>_run/

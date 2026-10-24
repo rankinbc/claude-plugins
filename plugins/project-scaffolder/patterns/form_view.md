@@ -109,7 +109,7 @@ def get_db():
 From the project root:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 uvicorn components.<component_name>.app:app --reload
 # Open http://localhost:8000
 ```

@@ -8,7 +8,7 @@ Guided conversational scaffolder using **parallel sub-agent orchestration**. A s
 
 **Two locations — never mix them up:**
 - **Plugin files** (read-only templates): everything this command reads — `${CLAUDE_PLUGIN_ROOT}/patterns/`, `${CLAUDE_PLUGIN_ROOT}/deploy/`, `${CLAUDE_PLUGIN_ROOT}/agents/` — lives in the plugin's install folder, `${CLAUDE_PLUGIN_ROOT}`. Never write there.
-- **The new project** (everything you write): the target path chosen in step 9, which defaults to the user's current working directory. Every relative path in this document (`components/`, `PRPs/`, `.claude/`, `.scaffolding/`, …) is relative to that target path.
+- **The new project** (everything you write): the target path chosen in section 8, which defaults to the user's current working directory. Every relative path in this document (`components/`, `PRPs/`, `.claude/`, `.scaffolding/`, …) is relative to that target path.
 
 Use this when the user:
 - Runs `/new-project` explicitly
@@ -140,9 +140,9 @@ Do NOT ask all questions upfront. Ask one at a time. Let their answers drive wha
 >
 > Sound right, or want a different breakdown?
 
-If the user replies "yes" / "looks good" / "go" / silence-after-beat → proceed to step 4 (classification is already done internally). If they want changes → iterate once, then proceed.
+If the user replies "yes" / "looks good" / "go" / silence-after-beat → proceed to section 4 (classification is already done internally). If they want changes → iterate once, then proceed.
 
-**Do NOT** show per-component descriptions, flow arrows, or folder trees here. Those all consolidate into step 9's unified proposal. This is just a component-count + naming check.
+**Do NOT** show per-component descriptions, flow arrows, or folder trees here. Those all consolidate into section 8's unified proposal. This is just a component-count + naming check.
 
 **Name suggestions — guidelines (apply silently when proposing):**
 - snake_case, short, descriptive
@@ -154,7 +154,7 @@ If the user replies "yes" / "looks good" / "go" / silence-after-beat → proceed
 - **User describes something huge**: push back before the sanity check. "This sounds like multiple projects — let me scope v1 to [X] and we can add more later. OK?" Only show the sanity check once the scope is reasonable.
 - **Two "components" are really one thing**: merge silently. Don't surface the internal debate to the user.
 
-**Escape hatch**: if the user signaled in step 1 ("walk me through each step"), revert to the old-style expanded proposal with per-component descriptions, flow discussion as a separate step, structure approval as a separate step, etc. See Guidelines below.
+**Escape hatch**: if the user signaled during the greeting or interview ("walk me through each step"), revert to the old-style expanded proposal with per-component descriptions, flow discussion as a separate step, structure approval as a separate step, etc. See Guidelines below.
 
 ---
 
@@ -187,20 +187,21 @@ Read each matching `${CLAUDE_PLUGIN_ROOT}/patterns/<shape>.md` to understand its
 Do this work:
 
 1. **Determine each component's inputs and outputs.** For each component, what data sources does it read from (`data/<source>/`) and where do its artifacts land (`output/<component>/<YYYY-MM-DD>_<run>/`)? Infer from the interview — if the user said "I want Monday reports from the ticket data," the flow is obvious. Ask only if a component's I/O is genuinely ambiguous after the interview (rare).
-2. **Decide the folder structure.** Canonical: `components/`, `data/<source>/`, `output/<component>/`, `PRPs/`, `.claude/`, plus the `data/<source>/` subfolders for declared sources and `output/<component>/` subfolders for producing components.
+2. **Decide the folder structure.** Canonical: `components/`, `data/<source>/`, `output/<component>/`, `PRPs/`, `.claude/`, plus the `data/<source>/` subfolders for declared sources and `output/<component>/` subfolders for producing components. Write it down as a **project tree** (plain text, one line per folder with a short purpose). This tree is reused verbatim later: in the scaffolding manifest (section 9), the project `README.md` (item 7 of 9a) and the root `CLAUDE.md` structure block (9c). Add any approved `project_level_folders` to it after section 8.
+3. **Decide each component's `secret_keys`.** For every external service a component talks to (an API, a database with a password, a webhook), name the environment variable(s) it will need in `UPPER_SNAKE_CASE` plus a one-line "where to get it" hint — e.g. `ZENDESK_API_TOKEN — Admin Center > Apps and integrations > APIs`. Key **names** only; never ask the user for a value. Components with no external credentials get an empty list. The union across components is the project's `secret_keys`; it feeds ce-scaffold (9b), `.env.example` (item 10 of 9a) and ce-validator (section 10).
 
 **Conventions (apply silently):**
 - Output: `output/<component_name>/<YYYY-MM-DD>_<run_description>/` — date first, never overwrite.
 - Input: `data/<source_name>/` — one subfolder per external source, named by the source.
 - Every component that produces artifacts has a dedicated output folder.
 
-**The user will see all of this once, unified, in step 9** (design proposal). Don't surface it piecemeal here — that's the whole point of the consolidation.
+**The user will see all of this once, unified, in section 8** (design proposal). Don't surface it piecemeal here — that's the whole point of the consolidation.
 
-**Escape hatch**: if the user asked for step-by-step mode in step 1, revert to the old per-step surfacing — announce "Now let's map how data flows," show flow arrows, get approval; then announce structure proposal, show tree, get approval. See Guidelines.
+**Escape hatch**: if the user asked for step-by-step mode earlier, revert to the old per-step surfacing — announce "Now let's map how data flows," show flow arrows, get approval; then announce structure proposal, show tree, get approval. See Guidelines.
 
 ---
 
-### 7. Dispatch ce-researcher per component (parallel)
+### 6. Dispatch ce-researcher per component (parallel)
 
 **Announce with per-component scope** (not a generic "I'll work quietly"). Tell the user exactly what's being researched for which component so the wait feels purposeful:
 
@@ -254,7 +255,7 @@ Keep each line under ~70 characters. If a research brief says "pattern defaults 
 
 ---
 
-### 8. Dispatch ce-planner
+### 7. Dispatch ce-planner
 
 **Announce**:
 
@@ -273,7 +274,7 @@ Dispatch ce-planner via Task tool once with the full multi-component spec:
 > 2. <name> — ...
 > 3. <name> — ...
 >
-> Data flow: <the arrows from Step 5>
+> Data flow: <the arrows from section 5>
 >
 > Produce a user-facing multi-component design proposal.
 > ```
@@ -282,9 +283,11 @@ ce-planner returns a proposal in plain language. Show it to the user essentially
 
 ---
 
-### 9. Unified proposal + iteration (the single big approval moment)
+### 8. Unified proposal + iteration (the single big approval moment)
 
 **Pre-compute the target path** before showing the proposal. Default: the user's **current working directory** (the folder Claude Code was started in) when it is empty — ignore a lone `.git/`. If it already holds other files, default to `<current working directory>/<slugified-project-name>` so nothing existing is touched. Use the absolute path. Never target anything inside `${CLAUDE_PLUGIN_ROOT}` — that is the plugin's install folder. No separate ask — the path is part of the proposal and the user can change it during iteration.
+
+**Overwrite guard.** Never write into a folder that already has content. If the chosen target (the default `<cwd>/<slug>`, or a path the user names) already exists and contains anything besides a lone `.git/`, do **not** propose it silently: say so in the target-path line ("`<path>` already exists and has files in it — I won't write over them. Pick a different name/location, or tell me explicitly to use it anyway and I'll only add files that don't exist yet.") and wait for the answer. Check with the Glob or LS-style listing, not by assumption. Re-check right before 9a writes the first file — if the folder gained content since the proposal, stop and ask again. Even with permission to use a non-empty folder, never overwrite an existing file: skip it and list the skipped paths in the handoff.
 
 **Show ce-planner's proposal verbatim, preceded by a target-path line.** The user sees one block with: target path + description + components + flow + stack + any extra top-level folders. Example shape:
 
@@ -306,7 +309,7 @@ Keep iterating until the user says "go" (or equivalent). When they do, proceed t
 
 ---
 
-### 10. Scaffold
+### 9. Scaffold
 
 **Announce**:
 
@@ -323,12 +326,13 @@ Print a scaffolding manifest BEFORE files appear:
 >   ├─ CLAUDE.md              (rules for Claude — your project structure + a component index)
 >   ├─ README.md              (one-page overview)
 >   ├─ pyproject.toml         (one dependency list + test config for the whole project)
->   ├─ PRPs/                  (where future plans will live)
+>   ├─ PRPs/                  (implementation plans)
+>   │    ├─ v1_<slug>.md       (the v1 build plan — /execute-prp follows it)
 >   │    └─ source/
->   │         └─ INITIAL.md   (pre-filled intent — one block per component; edit for new features)
+>   │         └─ INITIAL.md   (blank intake template for post-build features)
 >   ├─ .claude/
->   │    ├─ settings.local.json    (permissions — including deny rules that block Claude from your secrets)
->   │    ├─ hooks/                (blocks shell commands that reach for your .env)
+>   │    ├─ settings.json          (shared project settings — permissions, incl. deny rules that keep Claude away from your secrets)
+>   │    ├─ hooks/                (guardrail that stops tool calls reaching for your .env)
 >   │    └─ commands/              (/new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status)
 >   ├─ components/
 >   │    ├─ <component_1>/      (+ its own CLAUDE.md — rules load only when Claude works here)
@@ -355,7 +359,7 @@ Print a scaffolding manifest BEFORE files appear:
 >
 > Writing files now...
 
-#### 11a. Main session writes the project-root skeleton
+#### 9a. Main session writes the project-root skeleton
 
 All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAUDE_PLUGIN_ROOT}/deploy/` as the canonical template; plugin files outside `deploy/` are never copied. Copy with the Read and Write tools (or `cp` with both paths quoted — the plugin folder can contain spaces); the destination is always inside the target path.
 
@@ -375,20 +379,20 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
      ```
    - `PRPs/`
    - `PRPs/archive/` (with `.gitkeep`) — `/execute-prp` moves completed PRPs here on success
-   - `PRPs/source/` — holds `INITIAL.md` (written in item 7 below), so no `.gitkeep` is needed
+   - `PRPs/source/` — holds `INITIAL.md` (written in item 6 below), so no `.gitkeep` is needed
    - `tests/` — project-wide tests; receives `test_repo_hygiene.py` in item 9
 
-2. **`.claude/settings.local.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.local.json`.
+2. **`.claude/settings.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.json`. It is the **shared, committed** project settings file (permissions + the secret-guard hook), so the protection travels with the repo to every teammate. Don't write `.claude/settings.local.json` — that file is for each developer's personal overrides and Claude Code keeps it out of git.
 
-   **`.claude/hooks/`** — copy `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/block_secret_access.py` unchanged. `settings.local.json` references it by path in a `PreToolUse` hook; without the file, every Bash call fails the hook and the secrets guarantee is gone. Copy it for every project, secrets or not — it's inert when no `.env` exists.
+   **`.claude/hooks/`** — copy both `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/block_secret_access.py` and `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/run_python_hook.sh` unchanged. `settings.json` runs the Python guard through the `.sh` launcher in a `PreToolUse` hook; the launcher finds a working Python 3 (`python3`, `python`, or `py -3`) and **fails closed** — if the files are missing or no interpreter works, every guarded tool call is blocked with an explanation rather than silently allowed. Copy them for every project, secrets or not — the guard is inert when no `.env` exists.
 
-3. **`.claude/commands/`** — copy all from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/commands/` (`new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`).
+3. **`.claude/commands/`** — copy all five from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/commands/`: `new-feature.md`, `generate-prp.md`, `execute-prp.md`, `handoff.md`, `deploy-status.md`.
 
 4. **`.gitignore`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.gitignore`.
 
 5. **`PRPs/templates/prp_base.md`** + **`PRPs/README.md`** — copy both from `${CLAUDE_PLUGIN_ROOT}/deploy/PRPs/`.
 
-6. **`PRPs/source/INITIAL.md`** — copy `${CLAUDE_PLUGIN_ROOT}/deploy/INITIAL.md` as-is (blank template). In the option-B flow, `INITIAL.md` is the **per-feature intake for post-build feature work**, not the scaffold spec — so it ships empty, waiting for the user's next feature idea. The v1 implementation plan is written directly to `PRPs/v1_<project_slug>.md` in step 11d below, not funneled through INITIAL.md.
+6. **`PRPs/source/INITIAL.md`** — copy `${CLAUDE_PLUGIN_ROOT}/deploy/INITIAL.md` as-is (blank template). In the option-B flow, `INITIAL.md` is the **per-feature intake for post-build feature work**, not the scaffold spec — so it ships empty, waiting for the user's next feature idea. The v1 implementation plan is written directly to `PRPs/v1_<project_slug>.md` in section 9d below, not funneled through INITIAL.md.
 
 7. **`README.md`** — a SHORT project README (one page max):
    - **Status banner block at the very top**, delimited by HTML comment markers `<!-- status:begin -->` / `<!-- status:end -->` so `/execute-prp` can rewrite the banner cleanly when the build completes. Default (plan stage — scaffold just finished, PRP already written) text:
@@ -400,11 +404,11 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
      ```
      `/execute-prp` replaces the block contents with the "built" banner on first successful full build. Substitute the actual slug.
    - Project title + one-paragraph description
-   - "Project structure" — copy the tree you showed in Step 6
+   - "Project structure" — the project tree from section 5 (the same tree the scaffolding manifest in section 9 showed the user)
    - "Components" — one line per component: name → purpose → pattern
-   - "How to run" — the entry command per component (e.g., `streamlit run components/<name>/app.py`, `python components/<name>/scripts/run.py`)
+   - "How to run" — the entry command per component (e.g., `streamlit run components/<name>/app.py`, `python components/<name>/scripts/run.py`), preceded by one line: "Run these with the project venv active, or call its interpreter directly — `.venv\Scripts\python ...` on Windows, `.venv/bin/python ...` on macOS/Linux (bare `python` usually doesn't exist on macOS)."
    - "How to develop with Claude" — brief pointer for the initial build (`/execute-prp PRPs/v1_<slug>.md`) AND for adding features after build (`/new-feature` for the guided path, or manually edit `PRPs/source/INITIAL.md` → `/generate-prp` → `/execute-prp PRPs/<slug>.md`)
-   - "How to reopen this project in Claude Code" — one line: `cd <project path> && claude` (no launcher scripts ship)
+   - "How to reopen this project in Claude Code" — one line: `cd "<project path>"`, then `claude` (two commands — `&&` fails in Windows PowerShell 5.1) (no launcher scripts ship)
    - One line at the top directing newcomers to `.scaffolding/README.md` for first-time setup (mention it will be auto-deleted by `/execute-prp` on successful build)
 
 8. **Project-level folders approved during design iteration.** For each entry in `project_level_folders` (may be empty):
@@ -419,16 +423,40 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
 
 9. **Root `pyproject.toml` + `tests/test_repo_hygiene.py`** (Python stacks — the default for every current pattern; skip both for a non-Python stack).
 
-   Write these **after** the ce-scaffold reports return in 11b, since the dependency list is aggregated from them.
+   Write these **after** the ce-scaffold reports return in 9b, since the dependency list is aggregated from them.
 
-   `[project] dependencies` is the deduplicated union of every component's `## Dependencies` return. Where two components pin conflicting ranges, take the intersection and note it in the handoff.
-
-   The tool config below is **not optional boilerplate — copy it verbatim.** These flags exist to keep validation-gate output small, because `/execute-prp` runs those gates repeatedly against failing code and every extra line lands in the context window. Measured on a 4-test file with 3 failures: the pytest flags cut output 39%, and `output-format = "concise"` cuts ruff 61% (ruff's default reprints the source snippet under every violation). Nothing actionable is lost — `concise` keeps `path:line:col: CODE message` and the `[*]` auto-fixable marker.
+   Write it from this template — **every section is required**, fill only the `<...>` placeholders:
 
    ```toml
+   [build-system]
+   requires = ["setuptools>=64"]
+   build-backend = "setuptools.build_meta"
+
+   [project]
+   name = "<project_slug, lowercased; letters, digits, - and _ only>"
+   version = "0.1.0"
+   requires-python = ">=3.11"
+   dependencies = [
+       # deduplicated union of every component's `## Dependencies` return
+   ]
+
+   [project.optional-dependencies]
+   dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
+
+   # Components are run as scripts/apps from components/<name>/, not installed as
+   # packages. Without this line, setuptools auto-discovery sees components/, data/,
+   # output/ ... and `pip install -e .` fails with "Multiple top-level packages".
+   [tool.setuptools]
+   packages = []
+
    [tool.pytest.ini_options]
    testpaths = ["tests", "components"]
-   addopts = "-q --tb=short --no-header -ra --maxfail=3"
+   # importlib mode: every component has tests/__init__.py + test_*.py with the same
+   # names; the default (prepend) mode then fails with "import file mismatch".
+   addopts = "-q --tb=short --no-header -ra --maxfail=3 --import-mode=importlib"
+   # importlib mode doesn't touch sys.path, so tests import component code as
+   # `components.<name>.<module>` from the project root.
+   pythonpath = ["."]
    cache_dir = "~/.cache/pytest"
 
    [tool.ruff]
@@ -437,23 +465,37 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
 
    [tool.mypy]
    cache_dir = "~/.cache/mypy"
+   # Same collision as pytest's: every component has a `tests` package. With this,
+   # mypy names modules by path (components.<name>.tests) instead of failing with
+   # 'Duplicate module named "tests"'.
+   explicit_package_bases = true
    ```
+
+   `[project] dependencies` is the deduplicated union of every component's `## Dependencies` return. Where two components pin conflicting ranges, take the intersection and note it in the handoff. Test/lint tools go in the `dev` extra, not in `dependencies`.
+
+   **Exception — a `cli` component that installs a console script** (`${CLAUDE_PLUGIN_ROOT}/patterns/cli.md`): replace the `[tool.setuptools] packages = []` table with that pattern's `[tool.setuptools.packages.find] where = ["components/<component_name>/src"]` and add its `[project.scripts]` entry. Never keep both tables. Only one component per project can own package discovery this way; flag a second one in the handoff.
+
+   The tool config is **not optional boilerplate — copy it verbatim.** These flags exist to keep validation-gate output small, because `/execute-prp` runs those gates repeatedly against failing code and every extra line lands in the context window. Measured on a 4-test file with 3 failures: the pytest flags cut output 39%, and `output-format = "concise"` cuts ruff 61% (ruff's default reprints the source snippet under every violation). Nothing actionable is lost — `concise` keeps `path:line:col: CODE message` and the `[*]` auto-fixable marker.
 
    `--maxfail=3` caps the blast radius of a broken change without hiding whether one thing or everything broke. Cache dirs point outside the tree per `${CLAUDE_PLUGIN_ROOT}/deploy/CLAUDE.md`'s "Tool caches outside the project" rule. Add `[tool.ruff] select`/`target-version` to match the project stack.
 
    Copy `${CLAUDE_PLUGIN_ROOT}/deploy/tests/test_repo_hygiene.py` to `tests/test_repo_hygiene.py` unchanged. It enforces the 500-line rule and the no-artifacts-at-root rule that `CLAUDE.md` declares.
 
-   **One environment, one install.** The project's first-run setup is exactly two lines:
+   **One environment, one install.** The project's first-run setup is exactly two lines. Emit the pair matching the user's platform (from your environment info — `win32`, `darwin`, `linux`), not both:
    ```
+   # Windows (PowerShell or cmd)
    python -m venv .venv
-   .venv\Scripts\pip install -e .      # Windows
-   .venv/bin/pip install -e .          # macOS / Linux
+   .venv\Scripts\python -m pip install -e ".[dev]"
+
+   # macOS / Linux — use python3: macOS has no `python` command by default
+   python3 -m venv .venv
+   .venv/bin/python -m pip install -e ".[dev]"
    ```
-   Emit the line matching the user's platform, not both. Never emit per-component install lines — components share one interpreter.
+   On Windows, if `python` opens the Microsoft Store or says "Python was not found", use `py -m venv .venv` instead. Calling the venv's own interpreter (`.venv\Scripts\python` / `.venv/bin/python`) avoids needing to activate the venv and avoids PowerShell's activation-script execution policy. Never emit per-component install lines — components share one interpreter.
 
-10. **Secrets scaffolding** — only when the union of every component's `## Secret keys` return is **non-empty**. When it's empty, skip this item entirely: no `.env.example`, no `scripts/`. (The deny rules in `.claude/settings.local.json` ship either way.)
+10. **Secrets scaffolding** — only when the project's `secret_keys` (section 5, unioned with every component's `## Secret keys` return) is **non-empty**. When it's empty, skip this item entirely: no `.env.example`, no `scripts/`. (The deny rules and the guard hook in `.claude/settings.json` ship either way.)
 
-    - **`.env.example`** at the project root, built from the union. One comment line per key carrying the "where to get it" hint from the component that declared it, then the bare key. Never any value:
+    - **`.env.example`** at the project root, built from that union. One comment line per key carrying the "where to get it" hint, then the bare key. Never any value:
       ```
       # Zendesk API token — Admin Center > Apps and integrations > APIs
       ZENDESK_API_TOKEN=
@@ -463,7 +505,7 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
 
 **Do NOT run `git init`.** The user might not want version control in this folder, or might plan to place it inside an existing repo. `.scaffolding/README.md` surfaces `git init` as one optional setup item — the user decides.
 
-#### 11b. Dispatch ce-scaffold per component (parallel)
+#### 9b. Dispatch ce-scaffold per component (parallel)
 
 For each component, dispatch ce-scaffold via Task tool — all in a single message so they run in parallel:
 
@@ -477,21 +519,22 @@ For each component, dispatch ce-scaffold via Task tool — all in a single messa
 > inputs: <declared input path(s) or "none">
 > outputs: <declared output path>
 > project_stack: <primary language — e.g., "Python 3.11">
+> secret_keys: <this component's keys from section 5, one per line as "KEY_NAME — where to get it", or "none">
 > ```
 
 Each ce-scaffold instance writes `components/<name>/` in isolation — including that component's own `CLAUDE.md` carrying the pattern gotchas — and returns:
 - Files it created
 - Validation commands for this component (aggregated into the root CLAUDE.md's validation gates)
-- **Dependencies** — the libs from the pattern's default stack (aggregated into the root `pyproject.toml`, item 9 of 11a)
-- **Secret keys** — key NAMES only (aggregated into the root `.env.example`, item 10 of 11a)
+- **Dependencies** — the libs from the pattern's default stack (aggregated into the root `pyproject.toml`, item 9 of 9a)
+- **Secret keys** — key NAMES only: the `secret_keys` you passed in, plus any the pattern itself requires (aggregated into the root `.env.example`, item 10 of 9a). If a report adds a key you didn't pass, add it to the project's `secret_keys` too.
 - **First-run setup commands** — component-specific one-offs only, usually empty; aggregated into `.scaffolding/README.md`'s Optional setup list
 - Any flags for dependency conflicts
 
 Gotchas are **not** returned — ce-scaffold writes them straight into `components/<name>/CLAUDE.md`, where Claude Code loads them on demand.
 
-#### 11c. Build project CLAUDE.md, the .scaffolding/ manifest + README, dynamically
+#### 9c. Build project CLAUDE.md, the .scaffolding/ manifest + README, dynamically
 
-**First, complete the two deferred items from 11a** now that the reports are in: item 9 (root `pyproject.toml` from the aggregated `## Dependencies`, plus `tests/test_repo_hygiene.py`) and item 10 (root `.env.example` from the aggregated `## Secret keys`, plus `scripts/secure/` — skipped entirely when no component declared secrets).
+**First, complete the two deferred items from 9a** now that the reports are in: item 9 (root `pyproject.toml` from the aggregated `## Dependencies`, plus `tests/test_repo_hygiene.py`) and item 10 (root `.env.example` from the project's `secret_keys` unioned with the aggregated `## Secret keys`, plus `scripts/secure/` — skipped entirely when that union is empty).
 
 Then **you** (main session) write the project's `CLAUDE.md` by assembling:
 
@@ -507,7 +550,7 @@ Then **you** (main session) write the project's `CLAUDE.md` by assembling:
 ## Project structure (STRICT — do not deviate)
 
 ```
-<the tree from Step 6, verbatim>
+<the project tree from section 5, verbatim>
 ```
 
 **Enforcement rules:**
@@ -588,7 +631,7 @@ Per-component gotchas and I/O paths live in `components/<name>/CLAUDE.md`. Read 
 
 Assembly rules for the manifest:
 - `scaffold_version` is **2**. Version 1 projects have a different layout: per-component gotchas inside the root `CLAUDE.md`, component-local `requirements.txt` and `.env.example`, no `components/<name>/CLAUDE.md`, no root `pyproject.toml`, and an empty `permissions.deny`. Those projects still work — they carry their own copy of the slash commands from the day they were scaffolded — but don't assume a v1 project has the v2 layout when inspecting one.
-- `lifecycle.stage` is `"plan"` at `/new-project` time — the PRP is written at scaffold time (step 11d), so the project goes straight to plan stage. `/execute-prp` advances it to `"built"` on first successful full build AND flips every component's `scaffold_state` from `"stub"` to `"built"` at the same time. Each stage transition appends a `{stage, at, by}` entry to `lifecycle.history`. Two stages total — `"scaffold"` is not an observable state in the option-B flow.
+- `lifecycle.stage` is `"plan"` at `/new-project` time — the PRP is written at scaffold time (section 9d), so the project goes straight to plan stage. `/execute-prp` advances it to `"built"` on first successful full build AND flips every component's `scaffold_state` from `"stub"` to `"built"` at the same time. Each stage transition appends a `{stage, at, by}` entry to `lifecycle.history`. Two stages total — `"scaffold"` is not an observable state in the option-B flow.
 - `scaffold_state` at the component level is `"stub"` at scaffold time and only flips to `"built"` inside `/execute-prp` when that component's section of the PRP passes validation. It exists separately from `lifecycle.stage` so `/execute-prp --component <name>` (partial builds) can reflect per-component build state while the project-level stage stays at `"plan"` until ALL components are built.
 - `entry_command` comes from the component's row in the root `CLAUDE.md`'s Components table ("How to run" column).
 - `first_run_setup` is the deduplicated aggregation of every ce-scaffold's `first_run_setup` lines for that component (the same lines that feed `.scaffolding/README.md`).
@@ -631,7 +674,7 @@ A few things that catch newcomers off guard — none are problems:
 - `README.md` — one-page overview
 - `pyproject.toml` — every component's dependencies in one place, plus test config. One environment, one install.
 - `tests/` — project-wide tests, including a structural check that keeps source files under 500 lines
-- `.claude/` — permissions (including deny rules that block Claude from reading your `.env`) and the five slash commands: `/new-feature`, `/generate-prp`, `/execute-prp`, `/handoff`, `/deploy-status`
+- `.claude/` — shared settings (`settings.json`: permissions, including deny rules and a guard hook that keep Claude from reading your `.env`) and the five slash commands: `/new-feature`, `/generate-prp`, `/execute-prp`, `/handoff`, `/deploy-status`
 <include the next two bullets only when the project declares secrets:>
 - `.env.example` — the secret keys this project needs, names only. Safe to commit.
 - `scripts/secure/` — `Set-ProjectSecrets.ps1` writes your `.env`; `Test-Readiness.ps1` reports which keys are set without revealing any value
@@ -639,7 +682,7 @@ A few things that catch newcomers off guard — none are problems:
 
 ## Build your project (inside Claude Code)
 
-1. Open a terminal and run: `cd <project path> && claude`
+1. Open a terminal and run: `cd "<project path>"`, then `claude` (two commands — `&&` fails in Windows PowerShell 5.1)
 2. *(Optional)* Skim `PRPs/v1_<slug>.md` to see what Claude plans to build
 3. Type `/execute-prp PRPs/v1_<slug>.md` — Claude builds the components and runs validation gates
 
@@ -649,14 +692,14 @@ That's it — one command to go from scaffold to working v1.
 
 `/execute-prp` handles the build. These are the things it can't do for you.
 
-- [ ] Create the environment and install everything, once:
+- [ ] Create the environment and install everything (including test/lint tools), once:
       ```
       python -m venv .venv
-      .venv\Scripts\pip install -e .
+      .venv\Scripts\python -m pip install -e ".[dev]"
       ```
-      <use `.venv/bin/pip install -e .` instead when the user isn't on Windows>
+      <on macOS/Linux emit instead: `python3 -m venv .venv` then `.venv/bin/python -m pip install -e ".[dev]"`. On Windows add: "If `python` isn't found, use `py -m venv .venv`.">
 <include the next bullet only when the project has a .env.example:>
-- [ ] Fill in your secrets: run `.\scripts\secure\Set-ProjectSecrets.ps1` **in your own terminal, not through Claude.** It prompts for each key in `.env.example` and writes `.env`. Values stay hidden as you type and are never echoed back. Claude is blocked from reading `.env` by the deny rules in `.claude/settings.local.json` — it can run `.\scripts\secure\Test-Readiness.ps1` to see which keys are set, by name only. (Not on Windows? `cp .env.example .env` and edit it by hand.)
+- [ ] Fill in your secrets **in your own terminal, not through Claude**: <Windows:> `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\secure\Set-ProjectSecrets.ps1` <macOS/Linux:> `pwsh -File scripts/secure/Set-ProjectSecrets.ps1` if PowerShell 7 is installed, otherwise `cp .env.example .env` and edit it by hand. The script prompts for each key in `.env.example` and writes `.env`; values stay hidden as you type and are never echoed back. Claude is kept away from `.env` by the deny rules and guard hook in `.claude/settings.json` — it can run `Test-Readiness.ps1` (same invocation) to see which keys are set, by name only.
 <then the aggregated first_run_setup lines from ce-scaffold reports, deduplicated, one bullet each — usually none. e.g.:>
 - [ ] `playwright install chromium`
 - [ ] Want version control? `git init && git add . && git commit -m "Initial scaffold"`
@@ -683,18 +726,19 @@ Automatic — on a successful `/execute-prp PRPs/v1_<slug>.md` run, this whole f
 - Do NOT include stack conjecture — beyond the install and secrets bullets, only emit setup items ce-scaffold explicitly returned.
 - The secrets bullet must say **in your own terminal, not through Claude** — Claude Code runs shell commands with stdin at the null device, so the prompt loop would silently write empty values.
 - Framing matters: "optional" not "required." A user should feel comfortable skipping git entirely.
-- Keep the "Done with setup?" block — it's the explicit signal that the folder is safe to delete.
+- Keep the "Cleanup" section — it's the explicit signal that the folder is safe to delete.
+- The PowerShell invocations use `-ExecutionPolicy Bypass -File` on purpose: running `.\scripts\secure\X.ps1` directly fails on a default Windows client ("running scripts is disabled on this system"), and `powershell` (Windows PowerShell 5.1) ships with every Windows, while `pwsh` (PowerShell 7) often isn't installed. Both scripts work under either.
 - Paths in the "Where to learn more" section are written relative to `.scaffolding/` (so prefix them with `../`).
 
 After both files are written, print:
 
 > All files created.
 
-#### 11d. Write the v1 mega-PRP inline
+#### 9d. Write the v1 mega-PRP inline
 
 **You** (main session) now synthesize `PRPs/v1_<project_slug>.md` directly — no intermediate INITIAL.md, no `/generate-prp` step. You already have every piece of context needed: the user interview, ce-researcher briefs per component, ce-scaffold returns (stub files + validation commands + dependencies + secret keys), the per-component gotchas ce-scaffold wrote into `components/<name>/CLAUDE.md`, the design proposal, data flow, build order rationale, and (if present) the user's pre-written `REQUIREMENTS.md`.
 
-Follow the shape of `PRPs/templates/prp_base.md` (the copy you wrote into the project in 11a) adapted for multi-component scope. Target ≤ 800 lines — if heading longer, you're duplicating CLAUDE.md content; cite instead of inline.
+Follow the shape of `PRPs/templates/prp_base.md` (the copy you wrote into the project in 9a) adapted for multi-component scope. Target ≤ 800 lines — if heading longer, you're duplicating CLAUDE.md content; cite instead of inline.
 
 Required sections in order:
 
@@ -725,9 +769,9 @@ Write the file. Then print:
 
 ---
 
-### 12. Dispatch ce-validator
+### 10. Dispatch ce-validator
 
-**Announce** (fold under step 5 — verification is the tail end of "create", not a separate user-facing step):
+**Announce** (fold under the user-facing Step 5 — verification is the tail end of "create", not a separate user-facing step):
 
 > Verifying everything looks good...
 
@@ -745,6 +789,7 @@ Dispatch ce-validator via Task tool:
 > declared_outputs: <list of output/<component>/ folders>
 > project_level_folders: <list of {name, purpose} for approved extras, or empty list>
 > stack: <project stack>
+> secret_keys: <the project's secret_keys union — key NAMES only, or empty list>
 >
 > Run validation and return a report.
 > ```
@@ -756,7 +801,7 @@ Based on result:
 
 ---
 
-### 13. Handoff — offer auto-chain or hand off cleanly
+### 11. Handoff — offer auto-chain or hand off cleanly
 
 **Announce**:
 
@@ -772,8 +817,8 @@ Based on result:
 
 **If the user says yes** (auto-chain path):
 
-1. Detect OS (reuse the `uname -s` detection from step 11a).
-2. Write a one-time helper script inside `.scaffolding/` (the folder you already created in step 11c). The script cd's to the parent (project root) before launching Claude Code, and deletes only itself on exit — the `.scaffolding/README.md` stays so the user can read it during their first session:
+1. Take the OS from your environment info (`Platform: win32` / `darwin` / `linux`) — don't shell out to `uname`, which doesn't exist in cmd or PowerShell.
+2. Write a one-time helper script inside `.scaffolding/` (the folder you already created in 9c). The script cd's to the parent (project root) before launching Claude Code, and deletes only itself on exit — the `.scaffolding/README.md` stays so the user can read it during their first session:
    - **macOS / Linux** — `<target>/.scaffolding/start.sh`:
      ```bash
      #!/usr/bin/env bash
@@ -792,17 +837,19 @@ Based on result:
      del "%~f0"
      ```
      Substitute the actual slug.
-3. Launch it in the background from the orchestrator session (reuse the OS detection):
-   - **macOS**: `open -a Terminal <target>/.scaffolding/start.sh &`
+3. Launch it in a new window from the orchestrator session:
+   - **macOS**: `open -a Terminal "<target>/.scaffolding/start.sh"`
    - **Linux**: `(x-terminal-emulator -e "<target>/.scaffolding/start.sh" &) 2>/dev/null || (gnome-terminal -- "<target>/.scaffolding/start.sh" &) 2>/dev/null || true`
-   - **Windows**: `start "" cmd /c "<target>\\.scaffolding\\start.bat"`
+   - **Windows, from the Bash tool (Git Bash)**: `MSYS_NO_PATHCONV=1 cmd /c start "" "<target>\.scaffolding\start.bat"` — use the backslashed Windows path. `MSYS_NO_PATHCONV=1` is required: without it Git Bash rewrites `/c` (and any other `/x` argument) into a filesystem path and the window never opens. Do **not** use a bare `start ""` either — in Git Bash that's a shell script wrapper, not cmd's builtin.
+   - **Windows, from the PowerShell tool**: `Start-Process -FilePath "<target>\.scaffolding\start.bat"`
+   If the launch command errors, skip straight to the manual fallback below — don't retry variants.
 4. Print confirmation with direct, step-by-step manual fallback:
 
    > Launching... a new terminal window should open with `/execute-prp PRPs/v1_<slug>.md` already running in your new project.
    >
    > **If the new window doesn't appear within ~5 seconds**, do this instead:
    >
-   > 1. Open a terminal and run: `cd <target path> && claude`
+   > 1. Open a terminal and run: `cd "<target path>"`, then `claude` (two commands — `&&` fails in Windows PowerShell 5.1)
    > 2. When Claude Code opens, type `/execute-prp PRPs/v1_<slug>.md` and press Enter.
    >
    > **Heads-up:** I created a hidden folder called `.scaffolding/` inside your project. It contains the scaffold manifest, first-run notes, and optional setup steps (install deps, copy `.env`, `git init`). **`/execute-prp` will delete this folder automatically when the v1 build succeeds** — leaving your project clean and ready for real work. Read `.scaffolding/README.md` if you want the extra context first.
@@ -813,7 +860,7 @@ Show direct, step-by-step instructions — not "open this file and read it":
 
 > Your project is ready at `<target path>`. When you're ready to build, do these two things:
 >
-> 1. **Open Claude Code in the project folder.** Open a terminal and run: `cd <target path> && claude`
+> 1. **Open Claude Code in the project folder.** Open a terminal and run: `cd "<target path>"`, then `claude` (two commands — `&&` fails in Windows PowerShell 5.1)
 > 2. **Type `/execute-prp PRPs/v1_<slug>.md`** and press Enter. Claude reads the v1 implementation plan I already wrote, fills in the stubs with real working code, and runs validation gates.
 >
 > That's it — one command to go from scaffold to working v1.
@@ -853,23 +900,26 @@ If the user wants **pure knowledge work** — one or more research components, n
 - **When in doubt, pick the simplest option.** Streamlit over React. SQLite over Postgres. Markdown over database.
 - **Always end with a clear handoff.** They should know exactly what command to run next.
 - **Use `components/<name>/` even for one-component projects.** Consistency matters more than saving one directory level.
-- **Honor the step-by-step escape hatch.** The default flow consolidates approvals (one sanity check + one unified proposal). If the user signals they want fine-grained review — phrases like "walk me through each step," "one piece at a time," "let me review each part" — revert to the old expanded flow: expose flow discussion as its own approval moment (step 5), structure proposal as its own (step 6), target path as a separate ask (old step 10). The work is identical; only the presentation changes.
+- **Honor the step-by-step escape hatch.** The default flow consolidates approvals (one sanity check + one unified proposal). If the user signals they want fine-grained review — phrases like "walk me through each step," "one piece at a time," "let me review each part" — revert to the old expanded flow: expose the flow discussion (section 5, item 1) as its own approval moment, show the project tree (section 5, item 2) for its own approval, and ask for the target path separately before the section 8 proposal. The work is identical; only the presentation changes.
 
 ---
 
 ## Exit criteria
 
+These restate the sections above; if one ever disagrees with a section, the section wins — fix the criterion.
+
 You're done when:
-- Target folder exists with the full structure: root holds `CLAUDE.md`, `README.md`, `.gitignore`; plus the dirs `.scaffolding/` (transient scaffolder state), `components/`, `data/`, `output/`, `PRPs/`, `.claude/`
-- `.scaffolding/` contains `manifest.json` (authoritative lifecycle + component tracker), `README.md` (first-run onboarding), and optionally `start.bat`/`start.sh` (auto-chain helper, self-deleting on launch). The whole folder is auto-deleted by `/execute-prp` on successful v1 build.
-- `PRPs/source/INITIAL.md` contains the pre-filled spec (ships in its final home — no relocation expected)
+- Target folder exists with the full structure: root holds `CLAUDE.md`, `README.md`, `.gitignore`; plus the dirs `.scaffolding/` (transient scaffolder state), `components/`, `data/`, `output/`, `PRPs/`, `.claude/`, `tests/` (Python stacks). No pre-existing file was overwritten (section 8 overwrite guard).
+- `.scaffolding/` contains `manifest.json` (authoritative lifecycle + component tracker, `lifecycle.stage == "plan"`), `README.md` (first-run onboarding), and optionally `start.bat`/`start.sh` (auto-chain helper, self-deleting on launch). The whole folder is auto-deleted by `/execute-prp` on successful v1 build.
+- `PRPs/v1_<slug>.md` exists (section 9d) — the v1 build plan.
+- `PRPs/source/INITIAL.md` is the **blank** per-feature template copied from `deploy/INITIAL.md` (item 6 of 9a) — not pre-filled; `PRPs/templates/prp_base.md`, `PRPs/README.md` and `PRPs/archive/` exist.
 - Each `data/<source>/` and `output/<component>/` contains a one-line `README.md` (not `.gitkeep`)
 - Any approved `project_level_folders` (e.g., `notebooks/`, `templates/`) exist at the project root with their own one-line `README.md` — or none if the user approved no extras
 - Every component has a populated `components/<name>/` folder with its own `README.md` **and its own `CLAUDE.md`** carrying that pattern's gotchas
 - No component folder contains a `requirements.txt`, `pyproject.toml`, `package.json`, or `.env.example` — those are project-root concerns
-- The root `pyproject.toml` exists (Python stacks) with the union of component dependencies and `testpaths`; `tests/test_repo_hygiene.py` is present
-- `.claude/settings.local.json` has a non-empty `permissions.deny` blocking `.env` reads and the `cat`/`type`/`Get-Content`/`printenv` shell paths
-- If any component declared secrets: `.env.example` exists at the project root with the union of key names (no values), and `scripts/secure/` holds both PowerShell scripts. If none did, neither exists.
+- The root `pyproject.toml` exists (Python stacks) from the item 9 template: `[project]` name/version, the union of component dependencies, the `dev` extra, `[tool.setuptools] packages = []` (or the cli pattern's `packages.find`), and pytest `testpaths` + `--import-mode=importlib`; `tests/test_repo_hygiene.py` is present
+- `.claude/settings.json` (not `settings.local.json`) has a non-empty `permissions.deny` covering `.env` / `.env.*` reads with `.env.example`/`.sample`/`.template` carved out, and a `PreToolUse` hook running `.claude/hooks/run_python_hook.sh` → `block_secret_access.py`; both hook files exist; all five slash commands are in `.claude/commands/`
+- If the project's `secret_keys` is non-empty: `.env.example` exists at the project root with exactly those key names (no values), and `scripts/secure/` holds both PowerShell scripts. If it's empty, neither exists.
 - The project's root `CLAUDE.md` has the project-structure enforcement block + a Components index table (one row per component, no gotcha bullets) + aggregated validation, and stays under 200 lines
-- `.scaffolding/README.md` exists with "Two stages / First time with Claude Code / What was set up / Build your project / Optional setup / Where to learn more / Cleanup" sections. The Optional setup section lists only items ce-scaffold returned (plus an optional git bullet — the scaffolder never runs `git init`). The Cleanup section notes that `/execute-prp` auto-deletes the folder.
-- The user receives direct step-by-step handoff instructions (`cd <path> && claude` → type `/execute-prp PRPs/v1_<slug>.md`) plus explicit mention that `.scaffolding/` is auto-deleted on successful build.
+- `.scaffolding/README.md` exists with "Two stages / First time with Claude Code / What was set up / Build your project / Optional setup / Where to learn more / Cleanup" sections. Optional setup holds, in order: the install block (Python stacks), the secrets bullet (only with `.env.example`), any `first_run_setup` lines ce-scaffold returned, and the git bullet — the scaffolder never runs `git init`. The Cleanup section notes that `/execute-prp` auto-deletes the folder.
+- The user receives direct step-by-step handoff instructions (`cd "<path>"`, then `claude`, then type `/execute-prp PRPs/v1_<slug>.md`) plus explicit mention that `.scaffolding/` is auto-deleted on successful build.

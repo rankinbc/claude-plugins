@@ -216,7 +216,7 @@ pyyaml>=6.0
 From the project root:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 # Drop data file in data/<source_name>/
 python components/<component_name>/generate.py
 # Report lands at output/<component_name>/<date>_<slug>/report.md

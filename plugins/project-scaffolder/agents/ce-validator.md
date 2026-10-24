@@ -44,10 +44,13 @@ The project root must have:
 - `PRPs/source/INITIAL.md` (blank per-feature template — option B does NOT pre-fill this at scaffold time)
 - `PRPs/v1_<slug>.md` — the v1 mega-PRP, written inline by `/new-project` at scaffold time. This is the file `/execute-prp` will run for the initial build.
 - `PRPs/archive/` (directory — `/execute-prp` moves completed PRPs here; must exist at scaffold time so the command has somewhere to land)
-- `.claude/settings.local.json`
+- `.claude/settings.json` (the shared, committed settings file — a `.claude/settings.local.json` written *instead* of it is a blocker: personal files stay out of git, so the secret protection wouldn't travel with the repo)
+- `.claude/hooks/block_secret_access.py` and `.claude/hooks/run_python_hook.sh`
+- `.claude/commands/new-feature.md`
 - `.claude/commands/generate-prp.md`
 - `.claude/commands/execute-prp.md`
 - `.claude/commands/handoff.md`
+- `.claude/commands/deploy-status.md`
 - `pyproject.toml` and `tests/test_repo_hygiene.py` — Python stacks only; skip both when `stack` is non-Python
 
 If any blocker fails, return FAIL with what's missing.
@@ -85,18 +88,18 @@ Then two warnings:
 
 ### 4b. Secrets and dependency consolidation (blocker)
 
-- `.claude/settings.local.json` must have a **non-empty** `permissions.deny` array containing at least `Read(./.env)`. An empty deny array means the project ships unprotected.
-- `.claude/hooks/block_secret_access.py` must exist, and `settings.local.json` must reference it from a `PreToolUse` hook. This is the load-bearing half of the secrets guarantee — the deny list only covers the Read tool, while the allow list necessarily permits `head`, `grep`, `python` and other ways to print a file. A missing hook file is a **blocker**: `settings.local.json` would point at nothing, and every Bash call would fail the hook.
+- `.claude/settings.json` must have a **non-empty** `permissions.deny` array containing at least `Read(./.env)`. An empty deny array means the project ships unprotected.
+- `.claude/hooks/block_secret_access.py` and `.claude/hooks/run_python_hook.sh` must both exist, and `settings.json` must run them from a `PreToolUse` hook (`sh ".../run_python_hook.sh" ".../block_secret_access.py"`). This is the second layer of the secrets guardrail — the deny list only covers the Read tool, while the allow list necessarily permits `head`, `grep`, `python` and other ways to print a file. A missing hook file is a **blocker**: the launcher fails closed, so every guarded tool call in the project would be blocked.
 - If `secret_keys` is non-empty: `.env.example` exists at the project root and declares every key in `secret_keys`; `scripts/secure/Set-ProjectSecrets.ps1` and `scripts/secure/Test-Readiness.ps1` both exist.
 - If `secret_keys` is empty: neither `.env.example` nor `scripts/` should exist. Their presence is a warn, not a blocker — harmless, just noise.
 - **`.env` must not exist.** The scaffolder never creates it; the developer does. If it exists, FAIL — something wrote secrets during scaffolding.
-- Never read `.env.example` values or attempt to read `.env`. Key names only.
+- Reading `.env.example` is fine — it holds key names and blank values only, and both the deny rules and the hook allow it. Never attempt to read `.env`.
 
 ### 5. JSON validity (blocker)
 
-Both JSON files must parse:
+Both JSON files must parse (use `python3` instead of `python` on macOS/Linux, or whichever of the two exists):
 ```bash
-python -c "import json; json.load(open('<project_root>/.claude/settings.local.json'))"
+python -c "import json; json.load(open('<project_root>/.claude/settings.json'))"
 python -c "import json; json.load(open('<project_root>/.scaffolding/manifest.json'))"
 ```
 
@@ -107,7 +110,7 @@ Additionally, verify the manifest's structural contract:
 
 ### 6. Slash command parsability (warn)
 
-Each `.claude/commands/*.md` should have a non-empty body.
+Each of the five `.claude/commands/*.md` files (`new-feature`, `generate-prp`, `execute-prp`, `handoff`, `deploy-status`) should have a non-empty body.
 
 ### 7. Python syntax check (warn — only if stack is Python)
 
@@ -115,12 +118,13 @@ Each `.claude/commands/*.md` should have a non-empty body.
 cd <project_root> && python -c "import py_compile, glob; [py_compile.compile(f, doraise=True) for f in glob.glob('components/**/*.py', recursive=True)]"
 ```
 
-Report syntax errors as warnings.
+Use `python3` instead of `python` if `python` isn't on PATH (macOS/Linux). Report syntax errors as warnings.
 
 ### 8. Validation commands reference real tools (warn)
 
 Look at the `## Validation gates` block in project CLAUDE.md. For each command:
-- If it uses a Python tool (pytest, ruff, mypy, streamlit, etc.), check that it appears in the root `pyproject.toml` — that's the single dependency manifest now, so a tool missing from it means the gate can't run
+- If it uses a Python tool (pytest, ruff, mypy, streamlit, etc.), check that it appears in the root `pyproject.toml` — runtime libs under `[project] dependencies`, test/lint tools under the `dev` extra (`[project.optional-dependencies]`). That's the single dependency manifest, so a tool missing from it means the gate can't run
+- `pyproject.toml` must have `[project]` `name` and `version`, and either `[tool.setuptools] packages = []` or a `[tool.setuptools.packages.find]` table — without one, `pip install -e .` fails with "Multiple top-level packages" (warn). Its pytest `addopts` must include `--import-mode=importlib` — without it, two components' `tests/test_*.py` collide with "import file mismatch" (warn)
 - If a command references a file path, glob-check the path exists
 
 Report mismatches as warnings.
@@ -175,10 +179,10 @@ Structured report for the main session:
 - Declared I/O folders — all present
 - Root CLAUDE.md — has structure enforcement, Components index table (<N> rows), validation gates, <L> lines
 - Secrets — deny rules present; .env.example matches declared keys; scripts/secure/ present; no .env written
-- Dependencies — root pyproject.toml present with testpaths; tests/test_repo_hygiene.py present
-- settings.local.json + .scaffolding/manifest.json — valid JSON
+- Dependencies — root pyproject.toml present with name/version, dev extra, setuptools packages, testpaths + importlib mode; tests/test_repo_hygiene.py present
+- settings.json + .scaffolding/manifest.json — valid JSON
 - Manifest lifecycle.stage == "plan", components array covers all declared components with scaffold_state=stub
-- Slash commands — 3/3 have bodies
+- Slash commands — 5/5 have bodies
 - Python syntax check — no errors
 - Validation commands — all tools declared in the root pyproject.toml
 - v1 PRP — has all required sections (Goal/Why/What/Context/Blueprint/Validation/Checklist)

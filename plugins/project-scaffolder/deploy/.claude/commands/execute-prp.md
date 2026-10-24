@@ -51,7 +51,7 @@ Before writing any code:
 - Run every validation gate in the PRP
 - Fix failures, re-run until all pass
 - Don't mock failing tests into passing. Fix the underlying issue.
-- If a gate fails because a secret is unset, don't try to read or write `.env` — it's deny-listed. Run `pwsh -File scripts/secure/Test-Readiness.ps1` to see which keys are missing by name, then tell the user to run `.\scripts\secure\Set-ProjectSecrets.ps1` in their own terminal and pause until they confirm.
+- If a gate fails because a secret is unset, don't try to read or write `.env` — it's deny-listed. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/secure/Test-Readiness.ps1` (Windows) or `pwsh -File scripts/secure/Test-Readiness.ps1` (macOS/Linux) to see which keys are missing by name, then tell the user to run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\secure\Set-ProjectSecrets.ps1` in their own terminal (macOS/Linux: `pwsh -File scripts/secure/Set-ProjectSecrets.ps1`, or edit `.env` from `.env.example` by hand) and pause until they confirm.
 - Any new dependency goes in the root `pyproject.toml`, never a new component-local manifest.
 
 ### 5. Complete

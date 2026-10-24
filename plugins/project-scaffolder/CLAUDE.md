@@ -57,9 +57,9 @@ plugins/project-scaffolder/
 │   ├── INITIAL.md            # Per-feature intake template
 │   ├── .gitignore            # Multi-language defaults
 │   ├── .claude/
-│   │   ├── settings.local.json   # Permissions — allow list + deny rules blocking .env reads
+│   │   ├── settings.json     # Shared project settings — allow list, deny rules, secret-guard hook
 │   │   ├── commands/         # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
-│   │   └── hooks/            # block_secret_access.py — PreToolUse guard on .env
+│   │   └── hooks/            # block_secret_access.py + run_python_hook.sh (fail-closed launcher) — PreToolUse guard on .env
 │   ├── scripts/secure/       # Set-ProjectSecrets.ps1, Test-Readiness.ps1 (copied only when a project declares secrets)
 │   ├── tests/                # test_repo_hygiene.py — enforces the 500-line rule in scaffolded projects
 │   └── PRPs/                 # Base PRP template + canonical guide

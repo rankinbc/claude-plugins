@@ -52,7 +52,7 @@ Anything Claude should *follow* when editing the component lives in these two se
 ### Sections that feed the component `README.md` (human-facing overview)
 
 - `## Default stack` — surfaced in the "Stack" line of the component README
-- `## Folder structure to scaffold` — summarized in the "Structure" section of the README (component-internal only — don't include project-level folders like `data/` or `output/`)
+- `## Folder structure (component-internal)` — summarized in the "Structure" section of the README (component-internal only — don't include project-level folders like `data/` or `output/`)
 
 ### Sections that drive scaffolding but don't land in any doc
 
@@ -69,7 +69,7 @@ Anything Claude should *follow* when editing the component lives in these two se
 
 ### Project-root concerns a pattern must NOT scaffold into the component
 
-Three things consolidated to the project root. A pattern's `## Folder structure to scaffold` must not list any of them inside the component:
+Three things consolidated to the project root. A pattern's `## Folder structure (component-internal)` must not list any of them inside the component:
 
 - **Dependencies** — no component-local `requirements.txt` / `pyproject.toml` / `package.json`. List the libs in `## Default stack`; ce-scaffold reports them and the main session writes one root manifest. One project, one environment, one install.
 - **Secrets** — no component-local `.env.example`. Name the keys in `## Gotchas for CLAUDE.md`; ce-scaffold reports the names and the main session writes one root `.env.example`. Starter code loads `PROJECT_ROOT / ".env"`, never `COMPONENT_DIR / ".env"`.

@@ -6,6 +6,7 @@ output/<component>/". Rules nothing enforces decay, so they are checked here.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -19,22 +20,41 @@ SOURCE_SUFFIXES = {
     ".go", ".rs", ".cs", ".rb", ".java", ".ps1",
 }
 
-SKIP_DIRS = {
-    ".git", ".venv", "venv", "env", "node_modules", "__pycache__",
+# Skipped wherever they appear: tool caches, dependency trees, VCS metadata.
+SKIP_ANYWHERE = {
+    ".git", ".hg", ".venv", "venv", "node_modules", "__pycache__",
     ".pytest_cache", ".mypy_cache", ".ruff_cache", ".hypothesis",
-    "data", "output", "dist", "build", "htmlcov", ".scaffolding",
-    "_archive", "migrations", "alembic",
+    ".tox", ".nox", ".eggs", "_archive", "migrations", "alembic",
+}
+
+# Skipped only at the project root. Names like `data`, `output`, `build` or `env`
+# are legitimate source folders inside a component (components/x/build/...), so
+# skipping them at any depth would silently exempt real code from the limit.
+SKIP_AT_ROOT = {
+    "data", "output", "dist", "build", "htmlcov", ".scaffolding", "env", "ENV",
 }
 
 
+def _is_virtualenv(path: Path) -> bool:
+    # Catches venvs with any name (`.venv-3.12`, `py311`, ...).
+    return (path / "pyvenv.cfg").is_file()
+
+
 def _source_files() -> list[Path]:
-    files = []
-    for path in PROJECT_ROOT.rglob("*"):
-        if path.suffix not in SOURCE_SUFFIXES or not path.is_file():
-            continue
-        if any(part in SKIP_DIRS for part in path.relative_to(PROJECT_ROOT).parts):
-            continue
-        files.append(path)
+    files: list[Path] = []
+    # os.walk with in-place pruning never descends into skipped trees; a
+    # rglob-then-filter walk would crawl every file in .venv/node_modules first.
+    for dirpath, dirnames, filenames in os.walk(PROJECT_ROOT):
+        current = Path(dirpath)
+        at_root = current == PROJECT_ROOT
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in SKIP_ANYWHERE
+            and not d.endswith(".egg-info")
+            and not (at_root and d in SKIP_AT_ROOT)
+            and not _is_virtualenv(current / d)
+        ]
+        files.extend(current / f for f in filenames if Path(f).suffix in SOURCE_SUFFIXES)
     return sorted(files)
 
 

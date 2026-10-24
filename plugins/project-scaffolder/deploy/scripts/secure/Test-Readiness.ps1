@@ -17,7 +17,15 @@
     Suppress the table and return only the exit code.
 
 .EXAMPLE
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/secure/Test-Readiness.ps1
+
+    Windows PowerShell 5.1 (ships with Windows). -ExecutionPolicy Bypass is needed
+    because the default Windows client policy refuses to run .ps1 files.
+
+.EXAMPLE
     pwsh -File scripts/secure/Test-Readiness.ps1
+
+    PowerShell 7 (Windows, macOS, Linux).
 #>
 [CmdletBinding()]
 param(

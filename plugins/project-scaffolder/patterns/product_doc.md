@@ -228,7 +228,7 @@ From the project root:
 ```bash
 # Edit drafts in components/<component_name>/drafts/ — pure markdown, any editor
 # For PDF export (optional — requires pandoc + weasyprint or wkhtmltopdf):
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 python components/<component_name>/export.py components/<component_name>/drafts/prd-feature-x.md
 # Published PDF + markdown copy lands in output/<component_name>/<date>_<doc_slug>/
 ```

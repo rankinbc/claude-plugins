@@ -138,7 +138,7 @@ DATABASE_URL         # only if the automation persists to a DB
 From the project root:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 .\scripts\secure\Set-ProjectSecrets.ps1                # fills the project-root .env; run it yourself, not through Claude
 python components/<component_name>/main.py --dry-run   # Preview what would happen
 python components/<component_name>/main.py             # Actual run

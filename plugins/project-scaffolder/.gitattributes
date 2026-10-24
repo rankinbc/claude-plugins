@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Shell scripts must keep LF endings: sh chokes on CR (the secret-guard hook launcher
+# would fail closed and block every tool call in generated projects).
+*.sh text eol=lf

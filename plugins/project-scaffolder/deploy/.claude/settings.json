@@ -52,6 +52,14 @@
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(!./.env.example)",
+      "Read(!./.env.sample)",
+      "Read(!./.env.template)",
+      "Read(!**/.env.example)",
+      "Read(!**/.env.sample)",
+      "Read(!**/.env.template)",
       "Read(**/secrets.json)",
       "Read(**/appsettings.Local.json)",
       "Read(**/appsettings.local.json)",
@@ -59,11 +67,12 @@
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/*.pfx)",
-      "Bash(cat .env*)",
-      "Bash(type .env*)",
-      "Bash(Get-Content .env*)",
-      "Bash(head .env*)",
-      "Bash(tail .env*)",
+      "Bash(cat .env)",
+      "Bash(type .env)",
+      "Bash(Get-Content .env)",
+      "Bash(head .env)",
+      "Bash(tail .env)",
+      "Bash(printenv)",
       "Bash(printenv *)",
       "Read(**/*.parquet)",
       "Read(**/*.xlsx)",
@@ -74,12 +83,12 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell",
+        "matcher": "Bash|PowerShell|Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Glob",
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/block_secret_access.py\"",
-            "timeout": 5
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/run_python_hook.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/block_secret_access.py\"",
+            "timeout": 15
           }
         ]
       }
@@ -89,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[context-engineering] Read CLAUDE.md for project rules. Check HANDOFF.md — if present, read it first; the previous session left context. Workflow: edit PRPs/source/INITIAL.md for your next feature, then /generate-prp, then /execute-prp PRPs/<slug>.md. Slash commands: /generate-prp, /execute-prp, /handoff. Reference: PRPs/README.md for the full PRP guide.'",
+            "command": "echo '[context-engineering] Read CLAUDE.md for project rules. Check HANDOFF.md - if present, read it first; the previous session left context. Workflow: /new-feature (or edit PRPs/source/INITIAL.md), then /generate-prp, then /execute-prp PRPs/<slug>.md. Slash commands: /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status. Reference: PRPs/README.md for the full PRP guide.'",
             "timeout": 5
           }
         ]

@@ -204,7 +204,8 @@ After the scaffold (pre-build, `.scaffolding/` still present):
 │   ├── templates/         # PRP template
 │   └── archive/           # Completed PRPs land here
 └── .claude/
-    ├── settings.local.json   # Permissions, incl. deny rules that block Claude from your .env
+    ├── settings.json      # Shared permissions + secret-guard hook (committed)
+    ├── hooks/             # block_secret_access.py + run_python_hook.sh
     └── commands/          # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
 ```
 
@@ -212,9 +213,9 @@ Two things worth knowing about this layout:
 
 **Each component carries its own `CLAUDE.md`.** Claude Code loads those on demand — only when Claude actually works in that folder. The root `CLAUDE.md` keeps a one-row-per-component index, so it stays about the same size whether the project has two components or six.
 
-**Secrets live in one place and Claude can't read them.** All secrets go in a single gitignored `.env` at the project root, enforced two ways. `.claude/settings.local.json` denies the Read tool. Separately, a `PreToolUse` hook blocks any shell command that mentions the file — that second layer is the one that matters, because a permission deny list only blocks the exact commands you listed, while the allow list any usable project needs (`head`, `tail`, `grep`, `python`) leaves plenty of other ways to print a file. The hook runs before permission rules and overrides allow rules, so it closes the whole class rather than named instances.
+**Secrets live in one place, outside the conversation.** All secrets go in a single gitignored `.env` at the project root, kept away from Claude two ways. `.claude/settings.json` denies the Read tool on `.env` files (`.env.example` stays readable). Separately, a `PreToolUse` hook checks shell commands and file/search tool calls for `.env` — case-insensitively, through quotes, wildcards like `.e*`, and recursive searches like `grep -r` — because a deny list only blocks the exact commands you listed, while the allow list any usable project needs (`head`, `grep`, `python`) leaves plenty of other ways to print a file. The hook fails closed: if it can't find Python or crashes, the call is blocked. It is a guardrail against *accidental* reads, not a sandbox — code that builds the filename at runtime can still get past string inspection — so the real protection is that values never need to enter the conversation.
 
-To fill the file in, run `.\scripts\secure\Set-ProjectSecrets.ps1` **in your own terminal**; it prompts for each key with the input hidden. Claude Code runs commands with stdin closed, so it can't drive that script even if asked. Claude can run `Test-Readiness.ps1`, which reports which keys are set — by name, never by value.
+To fill the file in, run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\secure\Set-ProjectSecrets.ps1` (Windows; or `pwsh -File scripts/secure/Set-ProjectSecrets.ps1` with PowerShell 7) **in your own terminal**; it prompts for each key with the input hidden. Claude Code runs commands with stdin closed, so it can't drive that script even if asked. Claude can run `Test-Readiness.ps1`, which reports which keys are set — by name, never by value.
 
 After a successful `/execute-prp PRPs/v1_<slug>.md`:
 

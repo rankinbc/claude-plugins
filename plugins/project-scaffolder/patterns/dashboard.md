@@ -69,22 +69,37 @@ col2.metric("Columns", len(df.columns))
 st.dataframe(df.head(20))
 ```
 
-**Project-level `pyproject.toml`** (the single dependency manifest, shared across all components, with cache hygiene baked in):
+**Project-level `pyproject.toml`** (the single dependency manifest, shared across all components, with cache hygiene baked in — the canonical template is item 9 of `/new-project` section 9a; this is it filled in for a dashboard):
 ```toml
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
+name = "<project_slug>"
+version = "0.1.0"
+requires-python = ">=3.11"
 dependencies = [
     "streamlit>=1.30",
     "pandas>=2.0",
     "plotly>=5.18",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
+
+[tool.setuptools]
+packages = []    # components are run in place; without this, `pip install -e .` fails ("Multiple top-level packages")
+
 [tool.pytest.ini_options]
 testpaths = ["tests", "components"]
-addopts = "-q --tb=short --no-header -ra --maxfail=3"   # keeps failing-gate output small
+addopts = "-q --tb=short --no-header -ra --maxfail=3 --import-mode=importlib"   # small gate output; importlib avoids "import file mismatch" across components
+pythonpath = ["."]   # tests import component code as components.<name>.<module>
 cache_dir = "~/.cache/pytest"
 
 [tool.mypy]
 cache_dir = "~/.cache/mypy"
+explicit_package_bases = true   # components each have a `tests` package; avoids "Duplicate module named tests"
 
 [tool.ruff]
 output-format = "concise"    # default "full" reprints source under every violation
@@ -96,7 +111,7 @@ cache-dir = "~/.cache/ruff"
 From the project root:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 streamlit run components/<component_name>/app.py
 ```
 

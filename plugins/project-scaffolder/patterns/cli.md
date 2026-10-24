@@ -40,6 +40,10 @@ If the CLI writes files for the user to consume, they go in `output/<component_n
 
 **Root `pyproject.toml`** (click-based, with the bin entry and package discovery pointed at this component):
 ```toml
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "<cli-name>"
 version = "0.1.0"
@@ -48,17 +52,22 @@ dependencies = [
     "click>=8.1",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
+
 [project.scripts]
 <cli-name> = "<package_name>.cli:main"
 
 # Package discovery points at the component's src/ — the manifest is at the root,
-# the code stays in the component.
+# the code stays in the component. This REPLACES the template's
+# `[tool.setuptools] packages = []`; never keep both.
 [tool.setuptools.packages.find]
 where = ["components/<component_name>/src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "components"]
-addopts = "-q --tb=short --no-header -ra --maxfail=3"   # keeps failing-gate output small
+addopts = "-q --tb=short --no-header -ra --maxfail=3 --import-mode=importlib"   # small gate output; importlib avoids "import file mismatch" across components
+pythonpath = ["."]
 cache_dir = "~/.cache/pytest"
 
 [tool.ruff]
@@ -111,7 +120,7 @@ pipx install .
 <cli-name> apply ./some-dir --yes
 ```
 
-During dev: `pip install -e .` from the project root, then run the same commands.
+During dev: `python -m pip install -e ".[dev]"` from the project root (inside the venv), then run the same commands.
 
 **Console scripts aren't always on PATH.** `pip install -e .` puts the `<cli-name>` executable in the interpreter's scripts directory, which is not on PATH for several common installs — Windows Store Python puts it under `...\LocalCache\local-packages\Python3xx\Scripts`, and a non-activated venv has the same problem. Always give `python -m <package_name>` as the fallback in the component README, and prefer it in validation gates so they don't depend on PATH at all. `__main__.py` exists in the folder structure for exactly this reason.
 
@@ -133,7 +142,7 @@ From the project root:
 ```bash
 python -m ruff check components/<component_name>/src/
 python -m pytest -q components/<component_name>/tests/
-pip install -e .
+python -m pip install -e ".[dev]"   # inside the project venv
 python -m <package_name> --help >/dev/null && echo "CLI invokable"
 python -m <package_name> --version
 # PATH-independent on purpose — the console script may not be on PATH.

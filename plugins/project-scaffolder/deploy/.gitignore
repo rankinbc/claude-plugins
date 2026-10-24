@@ -70,10 +70,12 @@ hs_err_pid*.log
 vendor/bundle/
 *.gem
 
-# Environment & secrets
+# Environment & secrets (every .env variant; the committed templates are re-included)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.sample
+!.env.template
 *.pem
 *.key
 
@@ -88,7 +90,9 @@ Thumbs.db
 Desktop.ini
 
 # Claude Code
-# settings.local.json is intentionally NOT ignored — it ships with defaults
+# .claude/settings.json is committed (shared permissions + secret guard hook).
+# settings.local.json holds personal overrides and stays out of git.
+.claude/settings.local.json
 
 # Project artifacts
 *.log

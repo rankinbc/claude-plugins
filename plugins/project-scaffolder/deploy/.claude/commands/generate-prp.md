@@ -22,7 +22,7 @@ The mega-PRP approach keeps the implementation in a single plan with clear order
 
 Components without a `## COMPONENTS` section: treat it as a single feature/project and write a normal PRP.
 
-**Scope note for option-B projects (scaffolded by `/new-project`):** the initial v1 build does NOT use `/generate-prp` — the v1 mega-PRP is written directly at scaffold time to `PRPs/v1_<slug>.md`. Use `/generate-prp` only for **adding features to an already-built project**. If you're here on a fresh scaffold (`.scaffold_manifest.json` shows `lifecycle.stage: "plan"` with all components still `scaffold_state: "stub"`), point the user at `/execute-prp PRPs/v1_<slug>.md` instead and stop.
+**Scope note for option-B projects (scaffolded by `/new-project`):** the initial v1 build does NOT use `/generate-prp` — the v1 mega-PRP is written directly at scaffold time to `PRPs/v1_<slug>.md`. Use `/generate-prp` only for **adding features to an already-built project**. If you're here on a fresh scaffold (`.scaffolding/manifest.json` shows `lifecycle.stage: "plan"` with all components still `scaffold_state: "stub"`), point the user at `/execute-prp PRPs/v1_<slug>.md` instead and stop.
 
 ---
 

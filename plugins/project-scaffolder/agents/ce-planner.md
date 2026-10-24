@@ -66,7 +66,7 @@ Aggregate each source **independently** (don't merge the two buckets — they su
 - Preserve the per-bullet rationale the researcher cited — users need to see *why* the folder is being suggested (it's what lets them judge it).
 - Forward only what ce-researcher returned. No cross-component invention.
 
-The two deduped sets become two sub-groups of the "Extra top-level folders" block in the proposal (see step 8). If both sets are empty, omit the block entirely.
+The two deduped sets become two sub-groups of the "Extra top-level folders" block in the proposal (see step 3). If both sets are empty, omit the block entirely.
 
 ### 3. Write the proposal
 
@@ -75,7 +75,7 @@ Plain-language, user-facing. Structure:
 ```markdown
 Here's what I'd build:
 
-**{Project Name}** at `{target path or "the folder you choose"}`. {One-to-two sentence plain-language description of the overall project — what it lets the user do.}
+**{Project Name}**. {One-to-two sentence plain-language description of the overall project — what it lets the user do.}
 
 It has {N} components working together:
 
@@ -161,8 +161,9 @@ Your entire output is the proposal text — ready for the main session to show t
 
 ## Anti-patterns
 
-- Folder trees or code blocks (the main session showed the tree in Step 6; don't repeat)
+- Folder trees or code blocks (the main session keeps the project tree for the scaffolding manifest; the proposal stays prose)
 - Listing every library and version
+- Stating where the project will be created — the main session prints the target-path line directly above your proposal, so a second path from you would duplicate (and could contradict) it
 - "I think we should consider..." (commit to a choice)
 - Asking questions (the main session already did the interview)
 - More than one short paragraph + component bullets + one flow sentence + one flag + optional footprint block (total length ≈ 150-250 words; add ~30 words if the footprint block is present)
@@ -173,7 +174,7 @@ Your entire output is the proposal text — ready for the main session to show t
 
 > Here's what I'd build:
 >
-> **Support Workflow** at `~/projects/support-workflow`. A set of three tools that together turn your raw Zendesk tickets into a weekly Monday summary you can share with your team.
+> **Support Workflow**. A set of three tools that together turn your raw Zendesk tickets into a weekly Monday summary you can share with your team.
 >
 > It has three components working together:
 >
@@ -193,7 +194,7 @@ Your entire output is the proposal text — ready for the main session to show t
 
 > Here's what I'd build:
 >
-> **Onboarding Tracker** at `~/projects/onboarding-tracker`. A small dashboard that shows every new hire's status at a glance, with a notes section for manager comments.
+> **Onboarding Tracker**. A small dashboard that shows every new hire's status at a glance, with a notes section for manager comments.
 >
 > It has one component:
 >

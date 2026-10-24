@@ -22,6 +22,7 @@ A prompt with:
 - **inputs** — declared input path(s) within the project (e.g., `data/zendesk_exports/`) — may be empty for components that produce but don't consume
 - **outputs** — declared output path within the project (e.g., `output/ticket_insights/<YYYY-MM-DD>_<slug>/`) — may be empty for components that don't generate artifacts (rare)
 - **project_stack** — the overall project's primary language/runtime (e.g., "Python 3.11") so your stubs use consistent tooling
+- **secret_keys** — the env-var NAMES this component needs, decided by the main session from the interview, each with a "where to get it" hint (e.g. `ZENDESK_API_TOKEN — Admin Center > Apps and integrations > APIs`), or "none". These are authoritative: use exactly these names in the component `CLAUDE.md` I/O block and any stub that references a key, and echo them in your `## Secret keys` return.
 
 ## Your process
 
@@ -30,7 +31,7 @@ A prompt with:
 Start by reading the pattern file. Sections split by consumer (see `${CLAUDE_PLUGIN_ROOT}/patterns/README.md` for the full convention):
 
 - **`## Default stack`** — feeds the component README "Stack" line. Confirm it matches the project stack, or adapt.
-- **`## Folder structure to scaffold`** — the subfolders the pattern recommends inside the component. Summarized in the README "Structure" section.
+- **`## Folder structure (component-internal)`** — the subfolders the pattern recommends inside the component. Summarized in the README "Structure" section.
 - **`## Starter code`** / **`## Starter files`** — this section is **reference material for `/execute-prp`**, not what you ship. Use it only to identify *which files* the pattern expects (by filename) and what stack they use. Do not copy the pattern's actual code into the component — see step 4 for what to write instead.
 - **`## Gotchas for CLAUDE.md`** — you write these into `components/<name>/CLAUDE.md` (step 6). They do NOT go back to the main session.
 - **`## Validation`** — you return these in your report; the main session aggregates them into the project root `CLAUDE.md`'s validation gates.
@@ -70,13 +71,13 @@ The pattern's `## Starter code` / `## Starter files` section is a reference idio
 
 **Files you still write verbatim (when the pattern calls for them):**
 
-- `Dockerfile`, `alembic/` skeletons — if the pattern declares them in `## Folder structure`, create empty-ish versions.
+- `Dockerfile`, `alembic/` skeletons — if the pattern declares them in `## Folder structure (component-internal)`, create empty-ish versions.
 - `tests/` — create the folder + an empty `__init__.py`; do NOT write test stubs. `/execute-prp` writes tests alongside the implementation it generates.
 
 **Files you must NOT write (the main session owns these at the project root):**
 
 - **No `requirements.txt` / `pyproject.toml` / `package.json` inside the component.** Dependencies go in the project-root manifest so the project has one environment and one install step. Report the libs the pattern's `## Default stack` lists in your return report's `## Dependencies` section; the main session aggregates them.
-- **No `.env.example` inside the component.** Secrets live in a single project-root `.env`. Report the key names your pattern's gotchas reference in your return report's `## Secret keys` section; the main session writes the project-root `.env.example`.
+- **No `.env.example` inside the component.** Secrets live in a single project-root `.env`. Report the `secret_keys` you were given (plus any the pattern itself requires) in your return report's `## Secret keys` section; the main session writes the project-root `.env.example`.
 
 **Path adjustments still apply** for any path reference in your stubs:
 - Input paths → `../../data/<source_name>/`
@@ -110,7 +111,7 @@ Every component gets a `components/<component_name>/README.md` with this exact s
 
 ## Structure
 
-<brief list of what's in this component folder and why, summarized from pattern `## Folder structure to scaffold`>
+<brief list of what's in this component folder and why, summarized from pattern `## Folder structure (component-internal)`>
 
 ---
 
@@ -138,7 +139,7 @@ Claude Code loads `CLAUDE.md` files in subdirectories **on demand**, when Claude
 
 - Reads: `../../data/<source_name>/` — <or "None (self-contained)">
 - Writes: `../../output/<component_name>/<YYYY-MM-DD>_<description>/` — <or "None">
-- Secrets: reads `<KEY_NAME>` from the project-root `.env` — <omit this line if the component needs no secrets>
+- Secrets: reads `<KEY_NAME>` from the project-root `.env` — <one entry per key in `secret_keys`; omit this line if it is "none">
 ```
 
 Rules:
@@ -178,7 +179,7 @@ Structured, short. The main session collates reports from all ce-scaffold invoca
 
 ## Secret keys
 - <KEY_NAME>  # <where the developer gets it, one line>
-(Key NAMES only — you never see values. The main session writes the project-root `.env.example` from the union across components. Empty list `[]` when the component needs no secrets.)
+(Key NAMES only — you never see values. Start from the `secret_keys` you were given, verbatim with their hints; add a key only if the pattern itself requires one that wasn't passed, and say so under `## Flags for main session`. Never invent keys for services the component doesn't use. The main session writes the project-root `.env.example` from the union across components. Empty list `[]` when you were given "none" and the pattern requires none.)
 
 ## Validation commands for this component
 ```bash
