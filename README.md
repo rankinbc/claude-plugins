@@ -1,8 +1,8 @@
 <h1 align="center">rankinbc / claude-plugins</h1>
 
 <p align="center">
-  <strong>Claude Code plugins for deep research, safe secret handling and well-built new projects.</strong><br>
-  One marketplace, three plugins, each tested on every change.
+  <strong>Make Claude Code trustworthy where it usually isn't: research you can check,<br>
+  secrets it never sees, and new projects that start with a plan.</strong>
 </p>
 
 <p align="center">
@@ -13,6 +13,22 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
   <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/claude%20code-plugin%20marketplace-6e40c9" alt="Claude Code plugin marketplace"></a>
 </p>
+
+## Why use these
+
+Claude Code is good at doing things. These plugins cover three places where
+"it usually works" is not good enough, and each one backs its promise with
+something you can verify rather than a prompt asking Claude to be careful.
+
+| The problem | The plugin | What makes it hold |
+|---|---|---|
+| Research comes back fluent and confident, and you can't tell which claims are real | **recursive-research** | Every top-tier claim quotes its source, and a script opens the source and checks the words are there. Claims that fail are downgraded, with the reason. |
+| To use an API key, Claude has to see it, and then it lives in the transcript, a file or a shell history | **secret-courier** | Claude only ever handles the key's *name*. Values are encrypted on your machine and delivered by scripts; hooks refuse any tool call that would expose one, and refuse everything if they cannot run. |
+| A new project starts with Claude improvising the structure, and it drifts from session to session | **project-scaffolder** | A short interview, parallel research and a design you approve, then a scaffolded project with written conventions, tests that enforce them and a build plan Claude follows. |
+
+All three are free and MIT licensed, run locally, and are tested on every change
+(recursive-research and project-scaffolder on Windows, macOS and Linux).
+recursive-research needs nothing beyond Python's standard library.
 
 ## Install
 
@@ -28,11 +44,11 @@ Then install whichever plugins you want, and start a new session (plugins load a
 
 ## The plugins
 
-| Plugin | What it does | Runs on |
+| Plugin | Use it when | Runs on |
 |---|---|---|
-| [**recursive-research**](plugins/recursive-research) | Researches a subject to the depth you choose and leaves a structured, source-tagged knowledge base, with its strongest claims checked against their sources by a script | Windows, macOS, Linux · Python 3.9+ |
-| [**secret-courier**](plugins/secret-courier) | Lets Claude use your API keys and tokens by name without ever seeing a value; fail-closed guard hooks keep Claude's tools away from secret files | **Windows only** · PowerShell 7, Python 3.11+ |
-| [**project-scaffolder**](plugins/project-scaffolder) | A guided `/project-scaffolder:new-project` interview that researches, plans and scaffolds a structured, plan-driven project in your current folder | Windows, macOS, Linux |
+| [**recursive-research**](plugins/recursive-research) | You need to really understand a subject (a protocol, a market, a codebase's ecosystem) and want a knowledge base you can trust and build on | Windows, macOS, Linux · Python 3.9+ |
+| [**secret-courier**](plugins/secret-courier) | Claude needs to run, deploy or test something that takes a credential, and you don't want the credential in the conversation | **Windows only** · PowerShell 7, Python 3.11+ |
+| [**project-scaffolder**](plugins/project-scaffolder) | You're starting something with more than one moving part and want Claude to build it to a plan instead of improvising | Windows, macOS, Linux |
 
 ### recursive-research: research you can check
 

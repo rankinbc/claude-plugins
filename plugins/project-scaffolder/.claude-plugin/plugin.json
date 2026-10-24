@@ -1,7 +1,7 @@
 {
   "name": "project-scaffolder",
   "version": "2.1.0",
-  "description": "Guided /new-project interview that breaks your idea into components, researches each in parallel, and scaffolds a structured, PRP-driven Claude Code project (folder layout, conventions, slash commands, and a v1 build plan) in your current folder.",
+  "description": "Start new projects with a plan instead of improvising: a short interview, parallel research and a design you approve, then a scaffolded project with conventions, a .env guard and a v1 build plan Claude follows.",
   "author": {
     "name": "rankinbc",
     "url": "https://github.com/rankinbc"

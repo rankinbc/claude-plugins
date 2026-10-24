@@ -5,11 +5,22 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Claude Code plugin](https://img.shields.io/badge/claude%20code-plugin-6e40c9)
 
-**Version 2.1** — a Claude Code plugin that scaffolds `scaffold_version: 2` projects. See [What's new in 2.1](#whats-new-in-21) and [What's new in 2.0](#whats-new-in-20).
+**Start a new project with a plan, so Claude builds what you meant instead of improvising.**
 
-A scaffolder for new Claude Code projects. Instead of opening Claude Code in an empty folder and hoping it figures out a sensible structure, you run `/project-scaffolder:new-project`, answer a few questions, and end up with a fully researched, organized, plan-driven project ready to build.
+Run `/project-scaffolder:new-project` in an empty folder and answer a few questions. The plugin breaks your idea into components, researches each one in parallel, shows you a design to approve, and scaffolds the project: folder layout, written conventions with tests that enforce them, slash commands, a guard that keeps Claude out of your `.env`, and a v1 build plan. Then `/execute-prp` builds it, step by step, against that plan.
 
-For the actual how-to-run-it, see [QUICK-START.md](QUICK-START.md). This doc is about *what it does* and *why you'd use it*.
+```
+> /project-scaffolder:new-project
+
+Step 1/6 — Understanding your goal       a few questions about what you're building
+Step 2/6 — Component breakdown           your idea split into named components
+Step 3/6 — Researching each component    one research agent per component, in parallel
+Step 4/6 — Putting the design together   you approve the structure before anything is written
+Step 5/6 — Creating your project
+Step 6/6 — Ready to go!                  the command that opens your project and builds v1
+```
+
+Version 2.1 ([what's new](#whats-new-in-21)). For a step-by-step walkthrough see [QUICK-START.md](QUICK-START.md); this page is about what it does and why you'd use it.
 
 ## Install
 

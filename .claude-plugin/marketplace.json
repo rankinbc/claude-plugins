@@ -5,23 +5,23 @@
     "url": "https://github.com/rankinbc"
   },
   "metadata": {
-    "description": "Claude Code plugins by rankinbc: deep recursive research, secret handling by name, and guided project scaffolding."
+    "description": "Claude Code plugins that make it trustworthy where it usually isn't: research checked against its sources, secrets Claude never sees, and new projects built to a plan."
   },
   "plugins": [
     {
       "name": "recursive-research",
       "source": "./plugins/recursive-research",
-      "description": "A Claude skill that researches a subject to a chosen depth and leaves behind a structured, source-tagged knowledge base."
+      "description": "Deep research you can check: Claude researches a subject in stages you approve and leaves a source-tagged knowledge base, with its strongest claims verified word for word against their sources by a script."
     },
     {
       "name": "secret-courier",
       "source": "./plugins/secret-courier",
-      "description": "Move secrets around by name; Claude never sees a value and nothing is left lying around. Windows only."
+      "description": "Let Claude use your API keys, tokens and passwords without ever seeing them: values stay encrypted on your machine, Claude works by name, and fail-closed guard hooks keep its tools away from secret files. Windows only."
     },
     {
       "name": "project-scaffolder",
       "source": "./plugins/project-scaffolder",
-      "description": "Guided /new-project interview that researches, plans and scaffolds a structured, PRP-driven Claude Code project in your current folder."
+      "description": "Start new projects with a plan instead of improvising: a short interview, parallel research and a design you approve, then a scaffolded project with conventions, a .env guard and a v1 build plan Claude follows."
     }
   ]
 }

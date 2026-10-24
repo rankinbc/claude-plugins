@@ -1,4 +1,4 @@
-<h1 align="center">RecursiveResearch</h1>
+<h1 align="center">recursive-research</h1>
 
 <p align="center">
   <strong>A Claude skill that researches a subject in depth and proves its strongest claims.</strong><br>
