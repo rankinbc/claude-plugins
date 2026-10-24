@@ -1,8 +1,18 @@
-name: tests
+name: recursive-research
 
 on:
   push:
+    paths:
+      - 'plugins/recursive-research/**'
+      - '.github/workflows/recursive-research.yml'
   pull_request:
+    paths:
+      - 'plugins/recursive-research/**'
+      - '.github/workflows/recursive-research.yml'
+
+defaults:
+  run:
+    working-directory: plugins/recursive-research
 
 jobs:
   unittest:
