@@ -204,7 +204,8 @@ After the scaffold (pre-build, `.scaffolding/` still present):
 │   ├── templates/         # PRP template
 │   └── archive/           # Completed PRPs land here
 └── .claude/
-    ├── settings.json      # Shared permissions + secret-guard hook (committed)
+    ├── settings.json      # Deny rules + secret-guard hook (committed)
+    ├── settings.local.json # Pre-approved common commands (yours only, git-ignored)
     ├── hooks/             # block_secret_access.py + run_python_hook.sh
     └── commands/          # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
 ```

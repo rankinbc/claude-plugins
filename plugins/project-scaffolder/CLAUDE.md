@@ -57,7 +57,8 @@ plugins/project-scaffolder/
 │   ├── INITIAL.md            # Per-feature intake template
 │   ├── .gitignore            # Multi-language defaults
 │   ├── .claude/
-│   │   ├── settings.json     # Shared project settings — allow list, deny rules, secret-guard hook
+│   │   ├── settings.json     # Shared, committed: deny rules + secret-guard hook
+│   │   ├── settings.local.json # Personal, git-ignored: allow list of common commands
 │   │   ├── commands/         # /new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status
 │   │   └── hooks/            # block_secret_access.py + run_python_hook.sh (fail-closed launcher) — PreToolUse guard on .env
 │   ├── scripts/secure/       # Set-ProjectSecrets.ps1, Test-Readiness.ps1 (copied only when a project declares secrets)

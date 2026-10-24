@@ -88,7 +88,7 @@ Thumbs.db
 Desktop.ini
 
 # Claude Code
-# settings.local.json is intentionally NOT ignored — it ships with defaults
+# deploy/.claude/settings.local.json is tracked: it is the template copied into new projects
 
 # Project artifacts
 *.log

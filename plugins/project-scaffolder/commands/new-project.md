@@ -331,7 +331,8 @@ Print a scaffolding manifest BEFORE files appear:
 >   │    └─ source/
 >   │         └─ INITIAL.md   (blank intake template for post-build features)
 >   ├─ .claude/
->   │    ├─ settings.json          (shared project settings — permissions, incl. deny rules that keep Claude away from your secrets)
+>   │    ├─ settings.json          (shared, committed — deny rules and the guard hook that keep Claude away from your secrets)
+>   │    ├─ settings.local.json    (yours only, git-ignored — pre-approves common build and test commands)
 >   │    ├─ hooks/                (guardrail that stops tool calls reaching for your .env)
 >   │    └─ commands/              (/new-feature, /generate-prp, /execute-prp, /handoff, /deploy-status)
 >   ├─ components/
@@ -382,7 +383,9 @@ All sourced from **`${CLAUDE_PLUGIN_ROOT}/deploy/`** unless noted. Treat `${CLAU
    - `PRPs/source/` — holds `INITIAL.md` (written in item 6 below), so no `.gitkeep` is needed
    - `tests/` — project-wide tests; receives `test_repo_hygiene.py` in item 9
 
-2. **`.claude/settings.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.json`. It is the **shared, committed** project settings file (permissions + the secret-guard hook), so the protection travels with the repo to every teammate. Don't write `.claude/settings.local.json` — that file is for each developer's personal overrides and Claude Code keeps it out of git.
+2. **`.claude/settings.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.json`. It is the **shared, committed** project settings file (permissions + the secret-guard hook), so the protection travels with the repo to every teammate. It holds the deny rules and the hook only.
+
+   **`.claude/settings.local.json`** — copy from `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/settings.local.json`. It pre-approves common build, test and read-only commands (`python`, `pytest`, `npm`, `ls`, ...) for the person who ran the scaffolder. It is personal and git-ignored, so cloning the repo never pre-approves commands for someone else. Never move the deny rules or the hook into it.
 
    **`.claude/hooks/`** — copy both `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/block_secret_access.py` and `${CLAUDE_PLUGIN_ROOT}/deploy/.claude/hooks/run_python_hook.sh` unchanged. `settings.json` runs the Python guard through the `.sh` launcher in a `PreToolUse` hook; the launcher finds a working Python 3 (`python3`, `python`, or `py -3`) and **fails closed** — if the files are missing or no interpreter works, every guarded tool call is blocked with an explanation rather than silently allowed. Copy them for every project, secrets or not — the guard is inert when no `.env` exists.
 

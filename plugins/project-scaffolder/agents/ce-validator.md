@@ -44,7 +44,7 @@ The project root must have:
 - `PRPs/source/INITIAL.md` (blank per-feature template — option B does NOT pre-fill this at scaffold time)
 - `PRPs/v1_<slug>.md` — the v1 mega-PRP, written inline by `/new-project` at scaffold time. This is the file `/execute-prp` will run for the initial build.
 - `PRPs/archive/` (directory — `/execute-prp` moves completed PRPs here; must exist at scaffold time so the command has somewhere to land)
-- `.claude/settings.json` (the shared, committed settings file — a `.claude/settings.local.json` written *instead* of it is a blocker: personal files stay out of git, so the secret protection wouldn't travel with the repo)
+- `.claude/settings.json` (the shared, committed settings file with the deny rules and the hook — if they are in `.claude/settings.local.json` instead, that is a blocker: personal files stay out of git, so the secret protection wouldn't travel with the repo). `.claude/settings.local.json` holding only the `allow` list is expected.
 - `.claude/hooks/block_secret_access.py` and `.claude/hooks/run_python_hook.sh`
 - `.claude/commands/new-feature.md`
 - `.claude/commands/generate-prp.md`
