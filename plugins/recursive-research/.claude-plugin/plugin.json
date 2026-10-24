@@ -6,8 +6,8 @@
     "name": "rankinbc",
     "url": "https://github.com/rankinbc"
   },
-  "homepage": "https://github.com/rankinbc/RecursiveResearch",
-  "repository": "https://github.com/rankinbc/RecursiveResearch",
+  "homepage": "https://github.com/rankinbc/claude-plugins/tree/main/plugins/recursive-research",
+  "repository": "https://github.com/rankinbc/claude-plugins/tree/main/plugins/recursive-research",
   "keywords": [
     "claude-skill",
     "claude-code",

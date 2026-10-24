@@ -1,0 +1,27 @@
+{
+  "name": "rankinbc",
+  "owner": {
+    "name": "rankinbc",
+    "url": "https://github.com/rankinbc"
+  },
+  "metadata": {
+    "description": "Claude Code plugins by rankinbc: deep recursive research, secret handling by name, and guided project scaffolding."
+  },
+  "plugins": [
+    {
+      "name": "recursive-research",
+      "source": "./plugins/recursive-research",
+      "description": "A Claude skill that researches a subject to a chosen depth and leaves behind a structured, source-tagged knowledge base."
+    },
+    {
+      "name": "secret-courier",
+      "source": "./plugins/secret-courier",
+      "description": "Move secrets around by name; Claude never sees a value and nothing is left lying around. Windows only."
+    },
+    {
+      "name": "project-scaffolder",
+      "source": "./plugins/project-scaffolder",
+      "description": "Guided /new-project interview that researches, plans and scaffolds a structured, PRP-driven Claude Code project in your current folder."
+    }
+  ]
+}
