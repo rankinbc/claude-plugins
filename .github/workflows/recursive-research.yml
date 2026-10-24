@@ -1,6 +1,7 @@
 name: recursive-research
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'plugins/recursive-research/**'

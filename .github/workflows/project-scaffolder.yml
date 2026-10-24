@@ -1,6 +1,7 @@
 name: project-scaffolder
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'plugins/project-scaffolder/**'
