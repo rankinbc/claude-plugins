@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Node / JavaScript / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.parcel-cache/
+.next/
+out/
+
+# .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+*.pdb
+*.dll.config
+*.exe.config
+packages/
+TestResults/
+
+# Go
+# (vendor/ is shared with other ecosystems — uncomment in Go-only projects)
+# vendor/
+*.test
+*.out
+
+# Rust
+target/
+# Cargo.lock  # keep for binaries, ignore for libraries — decide per project
+
+# Java / Kotlin / JVM
+*.class
+.gradle/
+.settings/
+.project
+.classpath
+hs_err_pid*.log
+
+# Ruby
+.bundle/
+vendor/bundle/
+*.gem
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Claude Code
+# settings.local.json is intentionally NOT ignored — it ships with defaults
+
+# Project artifacts
+*.log
+/tmp/
+*.bak
+*.tmp
+
+# Deployer backups (from --overwrite runs)
+.ce-backup-*/
+
+# PRPs staging (uncomment if you want generated PRPs kept out of git)
+# PRPs/*.md
+# !PRPs/README.md
+# !PRPs/templates/
