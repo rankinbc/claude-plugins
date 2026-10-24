@@ -28,7 +28,7 @@ class TaskBriefTests(WorkspaceCase):
         self.assertNotIn("Assemble and review", text)
         self.assertIn("- `PRIMARY`: the RFC", text)
         self.assertNotIn("EXPERT", text.split("## Provenance")[1].split("For this subject:")[1].split("Search")[0])
-        self.assertIn(f"{self.ws.as_posix()}/sessions/2026-10-04_survey/raw/s01.md", text)
+        self.assertIn(f"{self.ws.resolve().as_posix()}/sessions/2026-10-04_survey/raw/s01.md", text)
         self.assertNotIn("{{", text)
 
     def test_survey_assembly_goes_to_the_organizer(self):
