@@ -87,7 +87,7 @@ class ReportTests(WorkspaceCase):
     def setUp(self):
         super().setUp()
         self.fill_plan()
-        src = self.write("local/spec.html", PAGE).as_posix()
+        src = self.write_source("spec.html", PAGE).as_posix()
         good = f'[PRIMARY: "A frame MUST NOT exceed 16384 bytes." {src}]'
         self.write("knowledge/spec.md", f"# Survey\n\n## Overview\n\nCap {good}. Vendors agree [SECONDARY].\n")
         self.write("knowledge/tree/README.md", "# Wire protocol\n\nOverview [SECONDARY].\n\n## Known Unknowns\n- none\n")

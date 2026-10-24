@@ -14,7 +14,7 @@ class Base(WorkspaceCase):
     def setUp(self):
         super().setUp()
         self.fill_plan()
-        self.page = self.write("local/spec.html", PAGE)
+        self.page = self.write_source("spec.html", PAGE)
         self.src = self.page.as_posix()
 
 
@@ -40,7 +40,7 @@ class MarkdownTests(Base):
         self.assertEqual(after, "The cap is 16384 bytes [SECONDARY: was PRIMARY, no quote given]. Vendors agree [SECONDARY].\n")
 
     def test_a_quote_may_contain_square_brackets(self):
-        page = self.write("local/grammar.html", "<p>The header is name [SP value] CRLF and nothing else.</p>").as_posix()
+        page = self.write_source("grammar.html", "<p>The header is name [SP value] CRLF and nothing else.</p>").as_posix()
         text = f'Header form [PRIMARY: "The header is name [SP value] CRLF and nothing else." {page}]. Next [SECONDARY].\n'
         result, after = self.check(text)
         self.assertEqual((result["verified"], result["downgraded"]), (1, 0))
@@ -135,7 +135,7 @@ class RosterTests(Base):
         self.assertIn("does not contain the value", e["verify_notes"]["code"])
 
     def test_a_number_written_with_thousands_separators_or_k_is_found(self):
-        page = self.write("local/pay.html", "<p>The base salary range is $150,000 - $170,000, or 1.5 times.</p>"
+        page = self.write_source("pay.html", "<p>The base salary range is $150,000 - $170,000, or 1.5 times.</p>"
                                             "<p>Senior pay starts at $160K.</p>").as_posix()
         band = {"quote": "The base salary range is $150,000 - $170,000, or 1.5 times.", "source_file": page}
         path = self.roster(properties={"low": 150000, "high": 170000, "ratio": 1.5, "start": 160000, "wrong": 15},

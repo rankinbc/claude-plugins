@@ -46,7 +46,8 @@ def _base_values(ws, plan, session):
         "DEFINITION_OF_DONE": plan["definition_of_done"],
         "PROVENANCE_MAPPING": mapping or "- (no sources are mapped)",
         "EXPECTED_TYPES": ", ".join(plan["entity_types"]),
-        "WORKSPACE": Path(ws).as_posix(),
+        # absolute, so an agent finds the files whatever its working folder is
+        "WORKSPACE": Path(ws).resolve().as_posix(),
         "SESSION": session,
         "DEPTH_CAP": plan["controls"]["depth_cap"],
         "CLOSED_BRANCHES": ", ".join(closed) or "none",
@@ -62,7 +63,9 @@ def _coordination(ws, plan, session, doc, task):
     text = read_text(path).strip()
     top = task["branch"].split("/")[0]
     ids = [t["id"] for t in doc["tasks"] if t["branch"].split("/")[0] == top]
-    lines = [line for line in text.splitlines() if any(i in line for i in ids)]
+    # whole ids only, so d1 does not pick up the line for d10
+    mention = re.compile(r"(?<![\w-])(?:" + "|".join(map(re.escape, ids)) + r")(?![\w-])") if ids else None
+    lines = [line for line in text.splitlines() if mention and mention.search(line)]
     return "\n".join(lines) if lines else text
 
 
@@ -77,7 +80,7 @@ def _render(template, values):
 def _write(ws, session, name, text):
     path = session_dir(ws, session) / "briefs" / f"{name}.md"
     write_text(path, text)
-    return path.as_posix()
+    return path.resolve().as_posix()
 
 
 def task_brief(ws, task_id, session=None):

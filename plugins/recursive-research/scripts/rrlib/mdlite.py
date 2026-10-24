@@ -7,7 +7,7 @@ the text was gathered from the web. Provenance tags become badges.
 import html
 import re
 
-from .provenance import TAG_RE, TIERS
+from .provenance import TAG_RE, TIERS, fence
 
 LINK_RE = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
 CODE_RE = re.compile(r"`([^`\n]+)`")
@@ -17,6 +17,7 @@ ITEM_RE = re.compile(r"^\s*(?:[-*+]|(\d+)[.)])\s+(.*)$")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
 TABLE_RULE_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$")
 REL = 'rel="noopener noreferrer"'
+PLACEHOLDER_RE = re.compile(r"\x00(\d+)\x00")
 
 
 def esc(text):
@@ -41,8 +42,8 @@ def badge(tier, checked=True, quote=None, url=None, note=None):
     return f'<span class="{css}"{title}>{tier}</span>'
 
 
-def _tag(match, checked):
-    tier, payload = match.group(1), (match.group(2) or "").strip()
+def _tag(tier, payload, checked):
+    payload = (payload or "").strip()
     if tier not in TIERS:
         return None
     if tier != "PRIMARY":
@@ -57,27 +58,36 @@ def inline(text, checked=True, resolve=None):
 
     `resolve` maps a link to another file onto the id of the place the page shows it, or None.
     """
-    kept = []
+    kept = []  # (rendered HTML, the source text it replaced)
+    # the placeholders are NUL-delimited, so a NUL in the input must not survive to look like one
+    text = text.replace("\x00", "\ufffd")
 
-    def keep(rendered):
-        kept.append(rendered)
+    def keep(rendered, source):
+        kept.append((rendered, source))
         return f"\x00{len(kept) - 1}\x00"
 
-    text = CODE_RE.sub(lambda m: keep(f"<code>{esc(m.group(1))}</code>"), text)
+    def expand(s, which):
+        # a kept piece can hold earlier placeholders, such as code inside a link label
+        return PLACEHOLDER_RE.sub(lambda m: expand(kept[int(m.group(1))][which], which), s)
+
+    def plain(s):
+        return expand(s, 1)
+
+    text = CODE_RE.sub(lambda m: keep(f"<code>{esc(m.group(1))}</code>", m.group(0)), text)
 
     def tag(match):
-        rendered = _tag(match, checked)
-        return keep(rendered) if rendered else match.group(0)
+        rendered = _tag(match.group(1), plain(match.group(2) or ""), checked)
+        return keep(rendered, match.group(0)) if rendered else match.group(0)
 
     text = TAG_RE.sub(tag, text)
 
     def link(match):
-        label, target = match.group(1), match.group(2)
+        label, target = match.group(1), plain(match.group(2))
         if target.lower().startswith(("http://", "https://")):
-            return keep(f'<a href="{esc(target)}" {REL}>{esc(label)}</a>')
+            return keep(f'<a href="{esc(target)}" {REL}>{esc(label)}</a>', match.group(0))
         anchor = resolve(target) if resolve else None
         if anchor:
-            return keep(f'<a href="#{esc(anchor)}">{esc(label)}</a>')
+            return keep(f'<a href="#{esc(anchor)}">{esc(label)}</a>', match.group(0))
         return label  # a link to a file the page does not show: keep the words, drop the path
 
     text = LINK_RE.sub(link, text)
@@ -85,7 +95,7 @@ def inline(text, checked=True, resolve=None):
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])", r"<em>\1</em>", text)
     text = re.sub(r"\bCONFLICT\b", '<span class="conflict">CONFLICT</span>', text)
-    return re.sub(r"\x00(\d+)\x00", lambda m: kept[int(m.group(1))], text)
+    return expand(text, 0)
 
 
 def _cells(line):
@@ -112,10 +122,11 @@ def render(text, checked=True, heading_offset=0, id_prefix="", resolve=None):
             i += 1
             continue
 
-        if line.lstrip().startswith("```"):
+        mark = fence(line)
+        if mark:
             i += 1
             block = []
-            while i < n and not lines[i].lstrip().startswith("```"):
+            while i < n and fence(lines[i]) != mark:
                 block.append(lines[i])
                 i += 1
             i += 1
@@ -196,7 +207,7 @@ def render(text, checked=True, heading_offset=0, id_prefix="", resolve=None):
         block = []
         while i < n and lines[i].strip():
             nxt = lines[i]
-            if block and (HEADING_RE.match(nxt) or ITEM_RE.match(nxt) or nxt.lstrip().startswith("```")
+            if block and (HEADING_RE.match(nxt) or ITEM_RE.match(nxt) or fence(nxt)
                           or ("|" in nxt and i + 1 < n and TABLE_RULE_RE.match(lines[i + 1]))):
                 break
             block.append(nxt.strip())

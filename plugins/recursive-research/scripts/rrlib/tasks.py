@@ -312,6 +312,8 @@ def complete_task(ws, task_id, summary, session=None):
     if quotes:
         result.update(quotes_verified=quotes["verified"], quotes_downgraded=quotes["downgraded"],
                       quote_notes=quotes["notes"])
+        if quotes.get("unchecked"):
+            result["quotes_unchecked"] = quotes["unchecked"]  # source not reached; checked again later
     _log(ws, session, f"{task_id}: {summary}")
     return result
 

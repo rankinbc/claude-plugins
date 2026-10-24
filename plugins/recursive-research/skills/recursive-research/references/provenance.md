@@ -51,12 +51,23 @@ them:
 | An entity roster | `"evidence": {"quote": ..., "source_url": ...}` on the entity, or one per property |
 
 A local file can stand in for the address (`source_file`, or a path in the
-tag). For a number in a roster, the number must also appear in the quote.
+tag). A relative path is read from the folder that holds `research/`. The
+file must be a regular file of at most 5 MB outside `research/`: a file the
+knowledge base wrote cannot confirm it. For a number in a roster, the number
+must also appear in the quote. Tags inside code (`` `...` `` or a fenced
+block) are examples and are not checked.
 
 A claim that passes stays `PRIMARY`. One that fails is downgraded to
 `SECONDARY` with the reason: no quote, quote not found, or source not
-reachable. A source the script cannot open, such as a `gemini://` address,
-counts as not confirmed.
+usable. A source the script cannot open, such as a `gemini://` address,
+counts as not confirmed. Only public `http`/`https` addresses are opened.
+When a Markdown tag is downgraded because of its source, it keeps the quote
+and address: `[SECONDARY: "quote" address; was PRIMARY, source unreachable]`.
+
+A source that cannot be reached this time (a timeout, a dropped connection,
+a server error, or the run's 60 seconds of fetching used up) proves nothing.
+The claim is left as it is, the result counts it as `unchecked`, the report
+shows it as not yet checked, and the next run tries again.
 
 The check runs when a survey section or a research result is completed, when
 a roster is promoted, and after each organizer writes to `knowledge/`. So

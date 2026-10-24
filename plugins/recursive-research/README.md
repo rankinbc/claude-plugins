@@ -131,7 +131,16 @@ in the catalogue it also checks that the number is in the quote.
 | The words are on the page | The claim stays `PRIMARY`, is shown as `PRIMARY ✓`, and links to its source |
 | No quote was given | Downgraded to `SECONDARY` |
 | The words are not on the page | Downgraded to `SECONDARY`, with the reason recorded |
-| The page cannot be opened | Downgraded to `SECONDARY`, with the reason recorded |
+| The page is gone, refused, or the local file is unusable | Downgraded to `SECONDARY`, with the reason recorded. A Markdown tag keeps its quote and address: `[SECONDARY: "quote" address; was PRIMARY, source unreachable]` |
+| The page could not be reached this time (timeout, dropped connection, server error) | Left as it is and shown as not yet checked. The next run tries again |
+
+The script opens only `http` and `https` addresses on the public internet,
+including after every redirect; private, local and cloud metadata addresses
+are refused. Each page gets 15 seconds and each run 60 seconds of fetching,
+six pages at a time, so a run ends well inside Claude Code's two-minute limit
+for a command. Whatever was not reached in that time is checked on the next
+run. A local file (`source_file`) must be a regular file of at most 5 MB
+outside the `research` folder: the knowledge base cannot cite itself.
 
 This matters because web tools hand a model a summary of a page, not the page.
 A researcher can sincerely "quote" a sentence that was never there. On the
@@ -140,7 +149,7 @@ top-tier quotes and downgraded the other 4.
 
 The check runs every time something is added to the knowledge base, across
 the survey, the catalogue and the tree. So every `PRIMARY` in it has been
-confirmed.
+confirmed, except any the report marks as not yet checked.
 
 | Tier | Meaning |
 |---|---|
@@ -276,8 +285,8 @@ unknown. The leaves hold exact values, formulas and algorithms.
 
 - [Claude Code](https://claude.com/claude-code), with web search available.
   The catalogue and deepening stages refuse to run without it.
-- Python 3.9 or later on your PATH, as `python3` or `python`. The plugin uses
-  only the standard library.
+- Python 3.9 or later on your PATH, as `python3` or `python` (on Windows,
+  `python` or `py -3`). The plugin uses only the standard library.
 
 **From Claude Code** (shown above):
 

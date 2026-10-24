@@ -46,6 +46,14 @@ right.
   organizer task completes, when a roster is promoted, when a wave is scored,
   and at consolidation; `knowledge/verification.json` records what has been
   checked, and fetched pages are kept in `sources/`.
+- **A source not reached is retried, not failed.** A timeout, dropped
+  connection or server error leaves the claim as it is, counted `unchecked`,
+  and its file is checked again on the next run; only lasting failures (such
+  as 404) are cached and downgrade. Fetching is bounded (15 s a page, 60 s a
+  run, six at a time), opens only public `http`/`https` hosts on every
+  redirect hop, and a downgraded Markdown tag keeps its quote and address. A
+  `source_file` must be a regular file of at most 5 MB outside `research/`,
+  and tags inside code are not checked.
 - **There is a scorecard.** `scorecard` counts claims by tier, how many are
   verified, open unknowns and conflicts, overall and for each branch and
   entity type.

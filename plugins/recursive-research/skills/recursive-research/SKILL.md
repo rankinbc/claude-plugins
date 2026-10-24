@@ -37,9 +37,10 @@ directory:
 
     python3 "<base directory>/../../scripts/rr.py" --root research <command> ...
 
-Use `python` if `python3` is not found. This document writes that prefix as
-`RR`. Every command prints JSON. Exit code 1 means validation found errors;
-exit code 2 means the command could not run, and the JSON on stderr says why.
+On Windows use `python` or `py -3` instead (there `python3` is often a Store
+stub); elsewhere use `python` if `python3` is not found. This prefix is `RR`.
+Every command prints JSON. Exit code 1 means validation found errors; exit
+code 2 means the command could not run, and the JSON on stderr says why.
 
 If Python is not installed, read `references/state.md`, edit the state files
 directly, and tell the user that validation and scoring were skipped.

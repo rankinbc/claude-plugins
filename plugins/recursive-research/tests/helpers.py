@@ -78,6 +78,15 @@ class WorkspaceCase(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         self.root = Path(tmp.name) / "research"
         self.ws = Path(store.scaffold(self.root, "Test Subject")["workspace"])
+        from rrlib import verify
+        verify.reset_run()  # each test is a fresh run: full fetch budget, no remembered failures
+
+    def write_source(self, name, content):
+        """A local file a researcher read: in the project, outside the research folder."""
+        path = self.root.parent / "local" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        store.write_text(path, content)
+        return path
 
     def fill_plan(self, approve=True, **overrides):
         plan = store.load_plan(self.ws)

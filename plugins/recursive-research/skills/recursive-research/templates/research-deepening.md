@@ -68,7 +68,8 @@ lower tier.
 
 Every `PRIMARY` finding must carry a `quote` and a `source_url`: the exact
 words that state the fact, and the address of the page those words are on.
-For a local file, give `source_file` in place of `source_url`.
+For a local file, give `source_file` (its absolute path) in place of
+`source_url`. A file under `research/` cannot be a source.
 
 When you finish, a script opens that address itself and looks for your quote.
 If the words are not there, the finding is downgraded to `SECONDARY` and the

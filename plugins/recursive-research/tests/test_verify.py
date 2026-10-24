@@ -2,6 +2,7 @@ import functools
 import http.server
 import threading
 import unittest
+import urllib.error
 
 from helpers import WorkspaceCase, proposal, raw_result
 from rrlib import store, tasks, verify
@@ -23,7 +24,7 @@ class VerifyTests(WorkspaceCase):
     def setUp(self):
         super().setUp()
         self.session = self.start_wave([proposal("p1")])
-        self.page = self.write("local/spec.html", PAGE)
+        self.page = self.write_source("spec.html", PAGE)
         self.calls = []
         real = verify.FETCH
         self.addCleanup(setattr, verify, "FETCH", real)
@@ -82,12 +83,23 @@ class VerifyTests(WorkspaceCase):
         self.assertEqual(self.calls, ["https://example.org/spec"])
         self.assertEqual(len(list((self.ws / "sources").glob("*.txt"))), 1)
 
-    def test_a_fetch_failure_downgrades_and_says_why(self):
+    def test_a_connection_failure_leaves_the_finding_unconfirmed_and_says_why(self):
         self.fake_fetch({})
-        _, (f,) = self.run_verify(finding("A frame MUST NOT exceed 16384 bytes.", source_url="https://down.example/spec"))
+        summary, (f,) = self.run_verify(
+            finding("A frame MUST NOT exceed 16384 bytes.", source_url="https://down.example/spec"))
+        self.assertEqual((f["tier"], f["verified"]), ("PRIMARY", False))
+        self.assertEqual((summary["unchecked"], summary["downgraded"]), (1, 0))
+        self.assertIn("could not be reached this time", f["verify_note"])
+        self.assertIn("certificate verify failed", f["verify_note"])
+
+    def test_a_missing_page_downgrades_and_says_why(self):
+        def gone(url):
+            raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
+        verify.FETCH = gone
+        _, (f,) = self.run_verify(finding("A frame MUST NOT exceed 16384 bytes.", source_url="https://gone.example/spec"))
         self.assertEqual(f["tier"], "SECONDARY")
         self.assertIn("could not be fetched", f["verify_note"])
-        self.assertIn("certificate verify failed", f["verify_note"])
+        self.assertIn("404", f["verify_note"])
 
     def test_other_tiers_are_left_exactly_as_they_were(self):
         before = {"claim": "c", "tier": "SECONDARY", "source": "a wiki", "quote": "anything"}
@@ -104,7 +116,9 @@ class VerifyTests(WorkspaceCase):
         self.assertEqual((summary["verified"], summary["downgraded"]), (1, 1))
 
     def test_a_real_http_fetch_works(self):
-        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(self.ws / "local"))
+        self.addCleanup(setattr, verify, "ALLOW_PRIVATE", False)
+        verify.ALLOW_PRIVATE = True  # the test server is on this machine
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(self.root.parent / "local"))
         handler.log_message = lambda *args: None
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
         threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -118,7 +132,7 @@ class VerifyTests(WorkspaceCase):
 class CompleteTaskVerifiesTests(WorkspaceCase):
     def test_completing_a_research_task_verifies_its_quotes_and_reports_the_counts(self):
         session = self.start_wave([proposal("p1")])
-        page = self.write("local/spec.html", PAGE)
+        page = self.write_source("spec.html", PAGE)
         doc = raw_result("p1", tiers=())
         doc["findings"] = [finding("A frame MUST NOT exceed 16384 bytes.", source_file=str(page)),
                            finding("A frame MUST NOT exceed 1024 bytes.", source_file=str(page))]

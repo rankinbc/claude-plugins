@@ -26,6 +26,7 @@ when you need to explain a file to the user.
         knowledge_snapshot.json
       issues/                    # full issue lists when validation finds more than ten
       sources/                   # pages the script fetched to check quotes, and index.json
+                                 # (only pages and lasting failures such as 404; delete it to refetch)
 
 Session names are `<date>_<stage>`, or `<date>_deepening_w<NN>` for deepening.
 Wave `w00` is the bootstrap. `plan.json` lists sessions in order under
