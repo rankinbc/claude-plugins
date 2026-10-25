@@ -7,6 +7,7 @@ Run from anywhere: python scripts/check_marketplace.py [--tag <plugin>--vX.Y.Z]
 - each plugin has a semantic version, a description, README.md, LICENSE and CHANGELOG.md
 - each plugin's homepage and repository point at its folder in this repository
 - no plugin carries its own marketplace.json
+- a plugin hosted in another GitHub repository is pinned to the tag v<version> of the version it lists
 - with --tag, the tag names a listed plugin and matches its version
 Standard library only. Exits 1 and lists every problem it finds.
 """
@@ -22,11 +23,27 @@ REPO_URL = "https://github.com/rankinbc/claude-plugins"
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 TAG = re.compile(r"^(?P<plugin>[a-z0-9-]+)--v(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$")
 REQUIRED_FILES = ("README.md", "LICENSE", "CHANGELOG.md")
+GITHUB_REPO = re.compile(r"^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$")
 
 
 def tracked_json_files():
     out = subprocess.run(["git", "ls-files", "*.json"], cwd=ROOT, capture_output=True, text=True, check=True)
     return [ROOT / line for line in out.stdout.splitlines() if line]
+
+
+def check_external(entry, problems):
+    """An entry whose source is another GitHub repository; its files are checked in that repository's own CI."""
+    name, source = entry.get("name", "?"), entry["source"]
+    if source.get("source") != "github" or not GITHUB_REPO.match(source.get("repo", "")):
+        problems.append(f"{name}: an external source must be {{\"source\": \"github\", \"repo\": \"owner/name\"}}")
+    version = entry.get("version", "")
+    if not SEMVER.match(version):
+        problems.append(f"{name}: an external entry needs a semantic version, got {version!r}")
+    elif source.get("ref") != f"v{version}":
+        problems.append(f"{name}: ref should be the release tag v{version}, got {source.get('ref')!r}")
+    if not entry.get("description"):
+        problems.append(f"{name}: an external entry needs its own description")
+    return version
 
 
 def check(tag=None):
@@ -39,10 +56,16 @@ def check(tag=None):
 
     marketplace = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
     versions = {}
+    external = set()
     for entry in marketplace.get("plugins", []):
         name = entry.get("name", "?")
         if name in versions:
             problems.append(f"{name}: listed twice in marketplace.json")
+        if isinstance(entry.get("source"), dict):
+            check_external(entry, problems)
+            external.add(name)
+            versions[name] = entry.get("version", "")
+            continue
         folder = (ROOT / entry.get("source", "")).resolve()
         manifest_path = folder / ".claude-plugin" / "plugin.json"
         if not manifest_path.is_file():
@@ -77,6 +100,8 @@ def check(tag=None):
             problems.append(f"tag {tag!r} is not <plugin>--vX.Y.Z")
         elif match["plugin"] not in versions:
             problems.append(f"tag {tag!r} names a plugin that is not in the marketplace")
+        elif match["plugin"] in external:
+            problems.append(f"tag {tag!r} names {match['plugin']}, which is released from its own repository")
         elif versions[match["plugin"]] != match["version"]:
             problems.append(f"tag {tag!r} does not match {match['plugin']} version {versions[match['plugin']]}")
     return problems, versions

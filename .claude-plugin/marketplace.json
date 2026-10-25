@@ -5,7 +5,7 @@
     "url": "https://github.com/rankinbc"
   },
   "metadata": {
-    "description": "Claude Code plugins that make it trustworthy where it usually isn't: research checked against its sources, secrets Claude never sees, and new projects built to a plan."
+    "description": "Claude Code plugins that make it trustworthy where it usually isn't: research checked against its sources, secrets Claude never sees, new projects built to a plan, and a code map that answers \"what calls this?\" with file:line evidence."
   },
   "plugins": [
     {
@@ -22,6 +22,17 @@
       "name": "project-scaffolder",
       "source": "./plugins/project-scaffolder",
       "description": "Start new projects with a plan instead of improvising: a short interview, parallel research and a design you approve, then a scaffolded project with conventions, a .env guard and a v1 build plan Claude follows."
+    },
+    {
+      "name": "citegraph",
+      "source": {
+        "source": "github",
+        "repo": "rankinbc/citegraph",
+        "ref": "v0.2.0"
+      },
+      "version": "0.2.0",
+      "description": "A code map for Claude: ask what calls this, or how a request reaches that code across services and languages, and get the exact chain with file:line evidence instead of a grep through look-alikes. Local and read-only, for Python and C#. Needs uv.",
+      "homepage": "https://github.com/rankinbc/citegraph"
     }
   ]
 }
